@@ -146,7 +146,30 @@
       // 🔊 Preload sounds to allow playback on iOS/Android
       const beepSuccess = new Audio("assets/success.mp3");
       const beepError = new Audio("assets/error.mp3");
+
+      // Set properties to help with mobile autoplay
+      beepSuccess.preload = "auto";
+      beepError.preload = "auto";
+      beepSuccess.volume = 1.0;
+      beepError.volume = 1.0;
+
+      // Load sounds
       [beepSuccess, beepError].forEach(audio => audio.load());
+
+      // Enable audio on first user interaction (required for mobile)
+      let audioUnlocked = false;
+      const unlockAudio = () => {
+        if (!audioUnlocked) {
+          beepSuccess.play().then(() => beepSuccess.pause()).catch(() => {});
+          beepError.play().then(() => beepError.pause()).catch(() => {});
+          audioUnlocked = true;
+          console.log("Audio unlocked");
+          document.removeEventListener("click", unlockAudio);
+          document.removeEventListener("touchstart", unlockAudio);
+        }
+      };
+      document.addEventListener("click", unlockAudio);
+      document.addEventListener("touchstart", unlockAudio);
 
       // Modal elements
       const duplicateModal = document.getElementById("duplicateModal");
@@ -200,8 +223,23 @@
           const resp = await fetch(
             `${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}&staffName=${encodeURIComponent(staffName)}`
           );
-          const result = await resp.json();
-          console.log("Resposta:", result);
+
+          // Check if response is JSON or HTML
+          const contentType = resp.headers.get("content-type");
+          let result;
+
+          if (contentType && contentType.includes("application/json")) {
+            result = await resp.json();
+            console.log("Resposta JSON:", result);
+          } else {
+            // HTML response means old workflow is active
+            const html = await resp.text();
+            console.warn("Resposta HTML (workflow antigo ativo):", html);
+            statusEl.textContent = "⚠️ Workflow antigo ativo. Por favor, ative v2.2 no N8N.";
+            statusEl.style.color = "orange";
+            beepError.play().catch(()=>{});
+            return;
+          }
 
           if (result.alreadyChecked) {
             statusEl.textContent = result.message || "⚠️ Já realizou check-in.";
@@ -210,17 +248,23 @@
           } else if (result.success || result.checked_in) {
             statusEl.textContent = "✅ Check-in registrado com sucesso!";
             statusEl.style.color = "green";
-            beepSuccess.play().catch(()=>{});
-          } else {
+            beepSuccess.play().catch((e) => console.log("Sound error:", e));
+          } else if (result.error) {
             statusEl.textContent = result.message || "❌ Erro ao processar check-in.";
             statusEl.style.color = "red";
-            beepError.play().catch(()=>{});
+            beepError.play().catch((e) => console.log("Sound error:", e));
+          } else {
+            // Unknown response format
+            console.error("Formato de resposta desconhecido:", result);
+            statusEl.textContent = "❌ Resposta inesperada do servidor.";
+            statusEl.style.color = "red";
+            beepError.play().catch((e) => console.log("Sound error:", e));
           }
         } catch (err) {
           console.error("Erro:", err);
           statusEl.textContent = "Erro de conexão com o servidor.";
           statusEl.style.color = "red";
-          beepError.play().catch(()=>{});
+          beepError.play().catch((e) => console.log("Sound error:", e));
         }
       };
 
