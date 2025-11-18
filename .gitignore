@@ -42,3 +42,12 @@ n8n backups/
 n8n broken/
 scanner_old/
 v1.0/
+
+# Test files
+test-*.html
+test-*.js
+
+# Large source documents
+*.docx
+*.pdf
+*.zip
