@@ -241,24 +241,37 @@
             return;
           }
 
-          if (result.alreadyChecked) {
+          // Log full response for debugging
+          console.log("Full response object:", JSON.stringify(result, null, 2));
+
+          if (result.alreadyChecked === true) {
             statusEl.textContent = result.message || "⚠️ Já realizou check-in.";
             statusEl.style.color = "#d49b00";
             showDuplicateModal(result);
-          } else if (result.success || result.checked_in) {
+            setTimeout(() => restartCamera(), 2000);
+          } else if (result.success === true || result.checked_in === true) {
             statusEl.textContent = "✅ Check-in registrado com sucesso!";
             statusEl.style.color = "green";
             beepSuccess.play().catch((e) => console.log("Sound error:", e));
-          } else if (result.error) {
+            setTimeout(() => {
+              statusEl.textContent = "Câmera ativa. Aponte para o próximo QR Code.";
+              statusEl.style.color = "#000";
+              restartCamera();
+            }, 3000);
+          } else if (result.error === true) {
             statusEl.textContent = result.message || "❌ Erro ao processar check-in.";
             statusEl.style.color = "red";
             beepError.play().catch((e) => console.log("Sound error:", e));
+            setTimeout(() => restartCamera(), 2000);
           } else {
-            // Unknown response format
+            // Unknown response format - log everything
             console.error("Formato de resposta desconhecido:", result);
-            statusEl.textContent = "❌ Resposta inesperada do servidor.";
+            console.error("Keys in response:", Object.keys(result));
+            console.error("Values:", Object.values(result));
+            statusEl.textContent = "❌ Resposta inesperada. Veja console (F12).";
             statusEl.style.color = "red";
             beepError.play().catch((e) => console.log("Sound error:", e));
+            setTimeout(() => restartCamera(), 2000);
           }
         } catch (err) {
           console.error("Erro:", err);
@@ -286,12 +299,30 @@
 
       const html5QrCode = new Html5Qrcode("reader");
       const qrConfig = { fps: 10, qrbox: 250 };
+      let cameraId = null;
+      let isScanning = false;
 
       const onScanSuccess = async (decodedText) => {
+        if (isScanning) return; // Prevent multiple scans
+        isScanning = true;
+
         console.log("QR detectado:", decodedText);
         html5QrCode.stop().catch(() => {});
         statusEl.textContent = "QR Code detectado. Validando...";
         await sendCheckin(decodedText.split("id=")[1] || decodedText.trim());
+      };
+
+      // Function to restart camera
+      const restartCamera = async () => {
+        try {
+          isScanning = false;
+          if (cameraId) {
+            await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
+            console.log("Camera restarted");
+          }
+        } catch (err) {
+          console.error("Erro ao reiniciar câmera:", err);
+        }
       };
 
       try {
@@ -302,7 +333,7 @@
             d.label.toLowerCase().includes("rear") ||
             d.label.toLowerCase().includes("environment")
           );
-          const cameraId = backCamera ? backCamera.id : devices[0].id;
+          cameraId = backCamera ? backCamera.id : devices[0].id;
           await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
           statusEl.textContent = "Câmera ativa. Aponte para o QR Code do ingresso.";
         } else {
