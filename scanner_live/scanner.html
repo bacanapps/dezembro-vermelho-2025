@@ -295,38 +295,65 @@
 
           // Log full response for debugging
           console.log("Full response object:", JSON.stringify(result, null, 2));
+          console.log("Response type:", typeof result);
+          console.log("Is array?", Array.isArray(result));
+
+          // Handle if response is wrapped in array (N8N sometimes does this)
+          let data = result;
+          if (Array.isArray(result) && result.length > 0) {
+            console.log("Response is array, extracting first item");
+            data = result[0];
+          }
+
+          // Handle if response is wrapped in 'json' property
+          if (data && data.json && typeof data.json === 'object') {
+            console.log("Response has json wrapper, unwrapping");
+            data = data.json;
+          }
+
+          console.log("Final data object:", JSON.stringify(data, null, 2));
 
           // Check for actual data FIRST (duplicate or success)
-          if (result.alreadyChecked === true) {
+          if (data.alreadyChecked === true) {
             statusEl.textContent = "⚠️ Participante já realizou check-in";
             statusEl.style.color = "#d49b00";
-            showDuplicateModal(result);
-          } else if (result.success === true || result.checked_in === true) {
+            showDuplicateModal(data);
+          } else if (data.success === true || data.checked_in === true) {
             statusEl.textContent = "✅ Check-in registrado com sucesso!";
             statusEl.style.color = "green";
-            showSuccessModal(result);
-          } else if (result.error === true) {
-            statusEl.textContent = result.message || "❌ Erro ao processar check-in.";
+            showSuccessModal(data);
+          } else if (data.error === true) {
+            statusEl.textContent = data.message || "❌ Erro ao processar check-in.";
             statusEl.style.color = "red";
             beepError.play().catch((e) => console.log("Sound error:", e));
             setTimeout(() => restartCamera(), 2000);
-          } else if (result.message === "Workflow was started" && !result.ticket_id) {
-            // Only show old workflow warning if no actual data present
-            statusEl.textContent = "⚠️ Workflow antigo ativo! Ative v2.2 no N8N.";
+          } else if (data.unauthorized === true) {
+            statusEl.textContent = data.message || "🚫 Acesso não autorizado";
+            statusEl.style.color = "red";
+            beepError.play().catch((e) => console.log("Sound error:", e));
+            setTimeout(() => restartCamera(), 2000);
+          } else if (data.notFound === true) {
+            statusEl.textContent = data.message || "⚠️ Ingresso não encontrado";
             statusEl.style.color = "orange";
             beepError.play().catch((e) => console.log("Sound error:", e));
-            console.error("❌ OLD WORKFLOW ACTIVE - Deploy v2.2!");
-            console.error("Response:", result);
+            setTimeout(() => restartCamera(), 2000);
+          } else if (data.message === "Workflow was started" && !data.ticket_id) {
+            // Only show old workflow warning if no actual data present
+            statusEl.textContent = "⚠️ Workflow antigo ativo! Ative v2.3 no N8N.";
+            statusEl.style.color = "orange";
+            beepError.play().catch((e) => console.log("Sound error:", e));
+            console.error("❌ OLD WORKFLOW ACTIVE - Deploy v2.3!");
+            console.error("Response:", data);
             setTimeout(() => restartCamera(), 3000);
           } else {
             // Unknown response format - log everything
-            console.error("Formato de resposta desconhecido:", result);
-            console.error("Keys in response:", Object.keys(result));
-            console.error("Values:", Object.values(result));
-            statusEl.textContent = "❌ Resposta inesperada. Ative v2.2 no N8N.";
+            console.error("Formato de resposta desconhecido:", data);
+            console.error("Keys in response:", Object.keys(data || {}));
+            console.error("Values:", Object.values(data || {}));
+            statusEl.textContent = "❌ Resposta inesperada do servidor. Ver console (F12)";
             statusEl.style.color = "red";
             beepError.play().catch((e) => console.log("Sound error:", e));
-            setTimeout(() => restartCamera(), 2000);
+            setTimeout(() => restartCamera(), 3000);
           }
         } catch (err) {
           console.error("Erro:", err);
