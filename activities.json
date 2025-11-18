@@ -7,14 +7,14 @@
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 2,
     "data": "01/12/2025",
     "horario": "16:00-19:30",
-    "nome_atividade": "Abertura da Exposição \"40 anos da resposta brasileira a aids\"",
+    "nome_atividade": "Abertura da Exposição \"40 anos da resposta brasileira à aids\"",
     "tipo": "Exposição",
     "local": "SESILAB",
     "capacidade": 100,
@@ -146,7 +146,7 @@
     "id": 14,
     "data": "04/12/2025",
     "horario": "16:00-17:30",
-    "nome_atividade": "Talk show - Tuberculose inecções oportunistas e aids: múltiplos desafios",
+    "nome_atividade": "Talk show - Tuberculose infecções oportunistas e aids: múltiplos desafios",
     "tipo": "Talk Show",
     "local": "SESILAB",
     "capacidade": 100,
@@ -157,7 +157,7 @@
     "id": 15,
     "data": "05/12/2025",
     "horario": "10:30-12:00",
-    "nome_atividade": "Iniquidades na resposta ao HIV/Aids: um olhar a partir dos determinantes sociais",
+    "nome_atividade": "Iniquidades na resposta ao HIV: um olhar a partir dos determinantes sociais",
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
@@ -328,5 +328,16 @@
     "capacidade": 100,
     "vagas_preenchidas": 0,
     "vagas_disponiveis": 100
+  },
+  {
+    "id": 31,
+    "data": "06/12/2025",
+    "horario": "14:00-16:30",
+    "nome_atividade": "HIV na literatura e nas artes - Convidados(as): Marcelo Henrique Silva e Bruna Linzmayer",
+    "tipo": "Roda de Conversa",
+    "local": "Túnel Sesilab",
+    "capacidade": 100,
+    "vagas_preenchidas": 3,
+    "vagas_disponiveis": 2
   }
 ]
