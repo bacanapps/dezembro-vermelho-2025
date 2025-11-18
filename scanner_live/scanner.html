@@ -132,6 +132,22 @@
     </div>
   </div>
 
+  <!-- Modal for successful check-in -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header" style="color: green;">
+        <span style="font-size: 32px;">✅</span>
+        <h2>Check-in Confirmado!</h2>
+      </div>
+      <div class="modal-body" id="successModalBody" style="background: #e8f5e9; border-color: green;">
+        <!-- Dynamic content will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button id="successModalCloseBtn" class="modal-close-btn" style="background: green;">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -176,6 +192,10 @@
       const modalBody = document.getElementById("modalBody");
       const modalCloseBtn = document.getElementById("modalCloseBtn");
 
+      const successModal = document.getElementById("successModal");
+      const successModalBody = document.getElementById("successModalBody");
+      const successModalCloseBtn = document.getElementById("successModalCloseBtn");
+
       // Display logged-in staff name
       userInfo.textContent = staffName
         ? `Olá, ${staffName}!`
@@ -188,15 +208,31 @@
         window.location.href = "login.html";
       });
 
-      // Modal close handler
+      // Duplicate modal close handler
       modalCloseBtn.addEventListener("click", () => {
         duplicateModal.classList.remove("active");
+        setTimeout(() => restartCamera(), 500);
       });
 
-      // Close modal on overlay click
+      // Close duplicate modal on overlay click
       duplicateModal.addEventListener("click", (e) => {
         if (e.target === duplicateModal) {
           duplicateModal.classList.remove("active");
+          setTimeout(() => restartCamera(), 500);
+        }
+      });
+
+      // Success modal close handler
+      successModalCloseBtn.addEventListener("click", () => {
+        successModal.classList.remove("active");
+        setTimeout(() => restartCamera(), 500);
+      });
+
+      // Close success modal on overlay click
+      successModal.addEventListener("click", (e) => {
+        if (e.target === successModal) {
+          successModal.classList.remove("active");
+          setTimeout(() => restartCamera(), 500);
         }
       });
 
@@ -213,6 +249,22 @@
         modalBody.innerHTML = html;
         duplicateModal.classList.add("active");
         beepError.play().catch(()=>{});
+      };
+
+      // Function to show success check-in modal
+      const showSuccessModal = (data) => {
+        const html = `
+          <p><strong>Participante:</strong> ${data.nome_completo || 'N/A'}</p>
+          <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+          <p><strong>Atividade:</strong> ${data.atividade_nome || 'N/A'}</p>
+          <p><strong>Ticket ID:</strong> ${data.ticket_id || 'N/A'}</p>
+          <p><strong>Status:</strong> ${data.status || 'CONFIRMADA'}</p>
+          <p><strong>Check-in realizado em:</strong> ${data.checkin_timestamp || new Date().toLocaleString('pt-BR')}</p>
+          <p><strong>Verificado por:</strong> ${data.checked_by || staffName || 'Admin'}</p>
+        `;
+        successModalBody.innerHTML = html;
+        successModal.classList.add("active");
+        beepSuccess.play().catch((e) => console.log("Sound error:", e));
       };
 
       // Function to send the check-in request
@@ -259,16 +311,10 @@
             statusEl.textContent = result.message || "⚠️ Já realizou check-in.";
             statusEl.style.color = "#d49b00";
             showDuplicateModal(result);
-            setTimeout(() => restartCamera(), 2000);
           } else if (result.success === true || result.checked_in === true) {
             statusEl.textContent = "✅ Check-in registrado com sucesso!";
             statusEl.style.color = "green";
-            beepSuccess.play().catch((e) => console.log("Sound error:", e));
-            setTimeout(() => {
-              statusEl.textContent = "Câmera ativa. Aponte para o próximo QR Code.";
-              statusEl.style.color = "#000";
-              restartCamera();
-            }, 3000);
+            showSuccessModal(result);
           } else if (result.error === true) {
             statusEl.textContent = result.message || "❌ Erro ao processar check-in.";
             statusEl.style.color = "red";
