@@ -296,17 +296,7 @@
           // Log full response for debugging
           console.log("Full response object:", JSON.stringify(result, null, 2));
 
-          // Check for "Workflow was started" ONLY if no other data present
-          if (result.message === "Workflow was started" && !result.alreadyChecked && !result.success && !result.checked_in && !result.ticket_id) {
-            statusEl.textContent = "⚠️ Workflow antigo ativo! Ative v2.2 no N8N.";
-            statusEl.style.color = "orange";
-            beepError.play().catch((e) => console.log("Sound error:", e));
-            console.error("❌ OLD WORKFLOW ACTIVE - Deploy v2.2!");
-            console.error("Response:", result);
-            setTimeout(() => restartCamera(), 3000);
-            return;
-          }
-
+          // Check for actual data FIRST (duplicate or success)
           if (result.alreadyChecked === true) {
             statusEl.textContent = "⚠️ Participante já realizou check-in";
             statusEl.style.color = "#d49b00";
@@ -320,6 +310,14 @@
             statusEl.style.color = "red";
             beepError.play().catch((e) => console.log("Sound error:", e));
             setTimeout(() => restartCamera(), 2000);
+          } else if (result.message === "Workflow was started" && !result.ticket_id) {
+            // Only show old workflow warning if no actual data present
+            statusEl.textContent = "⚠️ Workflow antigo ativo! Ative v2.2 no N8N.";
+            statusEl.style.color = "orange";
+            beepError.play().catch((e) => console.log("Sound error:", e));
+            console.error("❌ OLD WORKFLOW ACTIVE - Deploy v2.2!");
+            console.error("Response:", result);
+            setTimeout(() => restartCamera(), 3000);
           } else {
             // Unknown response format - log everything
             console.error("Formato de resposta desconhecido:", result);
