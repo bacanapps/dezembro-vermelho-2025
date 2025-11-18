@@ -1,0 +1,143 @@
+{
+  "name": "Get Live Activities - Dezembro Vermelho",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "activities-json",
+        "options": {
+          "allowedOrigins": "*"
+        },
+        "responseMode": "lastNode"
+      },
+      "id": "webhook-get-activities",
+      "name": "Webhook - Get Activities",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "activities-json"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Atividades_DezembroVermelho",
+          "mode": "name"
+        },
+        "filtersUI": {},
+        "options": {
+          "rangeDefinition": "specifyRange",
+          "range": "A2:I100"
+        }
+      },
+      "id": "read-activities-sheet",
+      "name": "Read Activities from Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform Google Sheets data to activities.json format\nconst items = $input.all();\n\nconst activities = items\n  .filter(item => item.json.id && item.json.id !== '')\n  .map(item => ({\n    id: parseInt(item.json.id) || 0,\n    data: item.json.data || '',\n    horario: item.json.horario || '',\n    nome_atividade: item.json.nome_atividade || '',\n    tipo: item.json.tipo || '',\n    local: item.json.local || '',\n    capacidade: parseInt(item.json.capacidade) || 0,\n    vagas_preenchidas: parseInt(item.json.vagas_preenchidas) || 0,\n    vagas_disponiveis: parseInt(item.json.vagas_disponiveis) || 0\n  }));\n\nreturn [{ json: activities }];"
+      },
+      "id": "transform-to-json",
+      "name": "Transform to JSON Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, OPTIONS"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-cache, no-store, must-revalidate"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-with-activities",
+      "name": "Respond with Activities JSON",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Get Activities": {
+      "main": [
+        [
+          {
+            "node": "Read Activities from Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Activities from Sheet": {
+      "main": [
+        [
+          {
+            "node": "Transform to JSON Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to JSON Format": {
+      "main": [
+        [
+          {
+            "node": "Respond with Activities JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "dezembro vermelho"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-17T18:30:00.000Z",
+  "versionId": "live-activities-v1"
+}

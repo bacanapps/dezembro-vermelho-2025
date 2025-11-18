@@ -1,0 +1,3 @@
+vamos precisar de um jeito de inscrever as pessoas nas atividades da programação
+Naná me explicou que precisa de um sistema simples
+Basicamente, precisamos que as pessoas vejam a programação e num canto tenha um botão com o link que vai pro sistema de inscrição e que no sistema tenha cadastro por e-mail ou CPF que essa pessoa consiga se inscrever e que gere uma confirmação da inscrição (como um ingresso) para a atividade

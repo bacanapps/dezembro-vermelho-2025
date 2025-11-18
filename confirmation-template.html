@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrição Confirmada - Dezembro Vermelho 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #c41e3a 0%, #a61a32 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px 20px;
+            padding: 0;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c41e3a 0%, #a61a32 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header .icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header h1 {
+            margin: 10px 0;
+            font-size: 2em;
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.95;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .greeting strong {
+            color: #c41e3a;
+        }
+
+        .message {
+            font-size: 1.1em;
+            color: #555;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .ticket-box {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border: 3px dashed #c41e3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .ticket-box .label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .ticket-box .ticket-id {
+            font-size: 2em;
+            font-weight: bold;
+            color: #c41e3a;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        .activity-details {
+            background: #f9f9f9;
+            border-left: 4px solid #c41e3a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .activity-details h3 {
+            color: #c41e3a;
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row strong {
+            min-width: 100px;
+            color: #666;
+        }
+
+        .detail-row span {
+            color: #333;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .instructions h3 {
+            color: #856404;
+            margin: 0 0 15px 0;
+            font-size: 1.1em;
+        }
+
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #856404;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .email-note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .email-note .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .email-note p {
+            margin: 5px 0;
+            color: #1565c0;
+        }
+
+        .actions {
+            text-align: center;
+            padding: 20px 0 0 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #c41e3a;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #a61a32;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(196, 30, 58, 0.3);
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #c41e3a;
+            border: 2px solid #c41e3a;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .ticket-box .ticket-id {
+                font-size: 1.5em;
+            }
+
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="icon">✅</div>
+            <h1>Inscrição Confirmada!</h1>
+            <p>Dezembro Vermelho 2025</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Olá, <strong id="userName">Participante</strong>!
+            </div>
+
+            <div class="message">
+                Sua inscrição foi <strong>confirmada com sucesso</strong>!
+                Você receberá um email de confirmação com todos os detalhes e o QR Code para acesso à atividade.
+            </div>
+
+            <!-- Ticket Box -->
+            <div class="ticket-box">
+                <div class="label">Código do seu Ingresso</div>
+                <div class="ticket-id" id="ticketId">DV25-XXXXXXX</div>
+            </div>
+
+            <!-- QR Code Display -->
+            <div id="qrCodeSection" style="text-align: center; margin: 30px 0; padding: 20px; background: #f9f9f9; border-radius: 12px; border: 2px solid #e0e0e0;">
+                <h3 style="color: #c41e3a; margin-bottom: 15px; margin-top: 0;">Seu QR Code de Acesso</h3>
+                <div id="qrCodeContainer" style="display: inline-block; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 290px; min-width: 290px;">
+                    <img id="qrCodeImage" src="" alt="QR Code" style="width: 250px; height: 250px; display: block; margin: 0 auto;" />
+                </div>
+                <p style="margin-top: 15px; margin-bottom: 0; color: #666; font-size: 0.9em;">Apresente este QR Code na entrada do evento</p>
+            </div>
+
+            <!-- Activity Details -->
+            <div class="activity-details" id="activityDetails">
+                <h3>Detalhes da Atividade</h3>
+                <div class="detail-row">
+                    <strong>Atividade:</strong>
+                    <span id="activityName">Carregando...</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Data:</strong>
+                    <span id="activityDate">--/--/----</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Horário:</strong>
+                    <span id="activityTime">--:--</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Local:</strong>
+                    <span id="activityLocation">---</span>
+                </div>
+            </div>
+
+            <!-- Email Note -->
+            <div class="email-note">
+                <div class="icon">📧</div>
+                <p><strong>Verifique seu email!</strong></p>
+                <p>Enviamos uma confirmação para <strong id="userEmail">seu email</strong> com:</p>
+                <p>✓ QR Code de acesso<br>
+                   ✓ Instruções detalhadas<br>
+                   ✓ Informações do evento</p>
+            </div>
+
+            <!-- Important Instructions -->
+            <div class="instructions">
+                <h3>⚠️ Importante</h3>
+                <ul>
+                    <li><strong>Guarde este código</strong> ou o email de confirmação</li>
+                    <li><strong>Chegue com 15 minutos de antecedência</strong> ao evento</li>
+                    <li><strong>Apresente o QR Code</strong> na entrada (impresso ou no celular)</li>
+                    <li><strong>Traga documento de identidade</strong> para conferência</li>
+                    <li>Em caso de dúvidas, entre em contato conosco</li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <a href="index.html" class="btn">Ver Outras Atividades</a>
+                <a href="javascript:window.print()" class="btn btn-secondary">Imprimir Confirmação</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>© 2025 Ministério da Saúde</strong></p>
+            <p>Programa Dezembro Vermelho</p>
+            <p>40 anos da resposta brasileira à AIDS</p>
+        </div>
+    </div>
+
+    <script>
+        // Get data from URL parameters or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Try to get data from URL parameters first
+        const ticketId = urlParams.get('ticket_id') || localStorage.getItem('dv_ticket_id');
+        const userName = urlParams.get('nome') || localStorage.getItem('dv_nome');
+        const userEmail = urlParams.get('email') || localStorage.getItem('dv_email');
+        const activityId = urlParams.get('atividade') || localStorage.getItem('dv_atividade');
+
+        // Validate that we have enrollment data - if not, redirect to home
+        if (!ticketId || !userName || !userEmail || !activityId) {
+            console.warn('No valid enrollment data found. Redirecting to home page.');
+            window.location.href = 'index.html';
+            // Stop execution
+            throw new Error('Invalid access - no enrollment data');
+        }
+
+        // Update ticket ID
+        document.getElementById('ticketId').textContent = ticketId || 'DV25-XXXXXXX';
+        document.getElementById('userName').textContent = userName || 'Participante';
+        document.getElementById('userEmail').textContent = userEmail || 'seu email';
+
+        // Generate and display QR Code
+        if (ticketId) {
+            const qrPayload = `https://scanner.bebot.co/scanner?id=${ticketId}`;
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrPayload)}&size=300x300`;
+            const qrImage = document.getElementById('qrCodeImage');
+
+            console.log('Setting QR Code URL:', qrCodeUrl);
+            qrImage.src = qrCodeUrl;
+
+            // Handle image load error
+            qrImage.onerror = function() {
+                console.error('Failed to load QR code image');
+                document.getElementById('qrCodeContainer').innerHTML = '<p style="color: #c41e3a;">Erro ao carregar QR Code. Verifique seu email.</p>';
+            };
+
+            qrImage.onload = function() {
+                console.log('QR Code loaded successfully');
+            };
+        } else {
+            console.warn('No ticket ID available for QR code generation');
+            document.getElementById('qrCodeContainer').innerHTML = '<p style="color: #666;">QR Code será enviado por email</p>';
+        }
+
+        // Load activity details
+        async function loadActivityDetails() {
+            if (!activityId) {
+                // Hide activity details if no ID
+                document.getElementById('activityDetails').style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch('./activities.json');
+                const activities = await response.json();
+                const activity = activities.find(a => String(a.id) === String(activityId));
+
+                if (activity) {
+                    document.getElementById('activityName').textContent = activity.nome_atividade;
+                    document.getElementById('activityDate').textContent = activity.data;
+                    document.getElementById('activityTime').textContent = activity.horario;
+                    document.getElementById('activityLocation').textContent = activity.local;
+                }
+            } catch (error) {
+                console.error('Error loading activity details:', error);
+                // Don't show error to user, just leave default values
+            }
+        }
+
+        // Load details on page load
+        loadActivityDetails();
+
+        // Clear localStorage after display (privacy)
+        setTimeout(() => {
+            localStorage.removeItem('dv_ticket_id');
+            localStorage.removeItem('dv_nome');
+            localStorage.removeItem('dv_email');
+            localStorage.removeItem('dv_atividade');
+        }, 1000);
+    </script>
+
+</body>
+</html>

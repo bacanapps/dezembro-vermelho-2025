@@ -1,0 +1,373 @@
+{
+  "name": "Dezembro Vermelho - Inscrições v9.1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inscricao-dv-2025",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "http://localhost:8001,https://localhost:8001"
+        }
+      },
+      "id": "webhook-001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 460],
+      "webhookId": "inscricao-dv-2025"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get data from webhook\nconst webhookData = $node[\"Webhook\"].json;\nconst bodyData = webhookData.body;\n\nlet nome_completo, email, atividade, cpf;\n\nif (bodyData && bodyData.nome_completo) {\n  nome_completo = bodyData.nome_completo;\n  email = bodyData.email;\n  atividade = bodyData.atividade;\n  cpf = bodyData.cpf || \"\";\n}\n\nif (!nome_completo || !email || !atividade) {\n  return {\n    json: {\n      status: \"error\",\n      message: \"Campos obrigatorios faltando\",\n      error: true,\n      httpCode: 400\n    }\n  };\n}\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(email)) {\n  return {\n    json: {\n      status: \"error\",\n      message: \"Email invalido\",\n      error: true,\n      httpCode: 400\n    }\n  };\n}\n\nreturn {\n  json: {\n    nome_completo: nome_completo.trim(),\n    email: email.toLowerCase().trim(),\n    cpf: cpf.trim(),\n    atividade: String(atividade).trim(),\n    validated: true\n  }\n};"
+      },
+      "id": "validate-002",
+      "name": "Validar Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 460]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.error}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-error-003",
+      "name": "Tem Erro?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [700, 460]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: $input.first().json };"
+      },
+      "id": "return-error-004",
+      "name": "Retornar Erro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 340]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Atividades_DezembroVermelho",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "id",
+              "lookupValue": "={{$json.atividade}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sheets-activity-005",
+      "name": "Buscar Atividade",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [920, 580],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const activities = $input.all();\nconst validatedData = $node[\"Validar Dados\"].json;\n\nif (activities.length === 0) {\n  return {\n    json: {\n      error: true,\n      status: \"error\",\n      message: \"Atividade nao encontrada\",\n      httpCode: 404\n    }\n  };\n}\n\nconst activity = activities[0].json;\nconst vagas_preenchidas = parseInt(activity.vagas_preenchidas) || 0;\nconst capacidade = parseInt(activity.capacidade) || 0;\n\nif (vagas_preenchidas >= capacidade) {\n  return {\n    json: {\n      error: true,\n      status: \"full\",\n      message: \"Capacidade maxima atingida\",\n      httpCode: 400\n    }\n  };\n}\n\nreturn {\n  json: {\n    ...activity,\n    ...validatedData,\n    error: false\n  }\n};"
+      },
+      "id": "check-activity-006",
+      "name": "Verificar Atividade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 580]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.error}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-activity-error-007",
+      "name": "Atividade OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1360, 580]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: $input.first().json };"
+      },
+      "id": "return-activity-error-008",
+      "name": "Retornar Erro Atividade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1580, 460]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Inscricoes_DezembroVermelho",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "sheets-check-duplicate-009",
+      "name": "Buscar Duplicatas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [1580, 700],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the validated form data from the previous workflow step\nconst validatedData = $node[\"Verificar Atividade\"].json;\nconst searchEmail = validatedData.email.toLowerCase().trim();\nconst searchAtividade = String(validatedData.atividade).trim();\n\nconsole.log('Searching for duplicate:', { searchEmail, searchAtividade });\n\n// Get ALL enrollments from Google Sheets\nconst allEnrollments = $input.all();\nconsole.log('Total enrollments found:', allEnrollments.length);\n\n// Manually filter for exact email AND activity match\nconst foundDuplicate = allEnrollments.find(item => {\n  if (!item.json || !item.json.email || !item.json.atividade_id) {\n    return false;\n  }\n  \n  const enrollmentEmail = String(item.json.email).toLowerCase().trim();\n  const enrollmentAtividade = String(item.json.atividade_id).trim();\n  \n  const isMatch = (enrollmentEmail === searchEmail) && (enrollmentAtividade === searchAtividade);\n  \n  if (isMatch) {\n    console.log('DUPLICATE FOUND:', item.json);\n  }\n  \n  return isMatch;\n});\n\nif (foundDuplicate && foundDuplicate.json.ticket_id) {\n  // Duplicate found - return error response\n  console.log('Returning duplicate response with ticket:', foundDuplicate.json.ticket_id);\n  return {\n    json: {\n      duplicate: true,\n      status: \"duplicate\",\n      message: \"Voce ja esta inscrito nesta atividade\",\n      ticket_id: foundDuplicate.json.ticket_id,\n      httpCode: 400\n    }\n  };\n}\n\n// No duplicate - continue with enrollment\nconsole.log('No duplicate found - proceeding with enrollment');\nreturn {\n  json: {\n    ...validatedData,\n    duplicate: false\n  }\n};"
+      },
+      "id": "check-duplicate-010",
+      "name": "Verificar Duplicata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 700],
+      "continueOnFail": false,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.duplicate}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-duplicate-011",
+      "name": "É Duplicata?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2020, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: $input.first().json };"
+      },
+      "id": "return-duplicate-012",
+      "name": "Retornar Duplicata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2240, 580]
+    },
+    {
+      "parameters": {
+        "jsCode": "const shortid = () => Math.random().toString(36).substring(2, 9).toUpperCase();\nconst data = $input.first().json;\n\nconst ticket_id = `DV25-${shortid()}`;\nconst qr_payload = `https://scanner.bebot.co/scanner?id=${ticket_id}`;\n\nreturn {\n  json: {\n    ticket_id,\n    qr_payload,\n    nome_completo: data.nome_completo,\n    email: data.email,\n    cpf: data.cpf,\n    atividade_id: data.id || data.atividade,\n    atividade_nome: data.nome_atividade || \"Atividade\",\n    atividade_data: data.data,\n    atividade_horario: data.horario,\n    atividade_local: data.local,\n    vagas_preenchidas: data.vagas_preenchidas,\n    vagas_disponiveis: data.vagas_disponiveis,\n    capacidade: data.capacidade,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "generate-ticket-013",
+      "name": "Gerar Ticket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2240, 820]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Inscricoes_DezembroVermelho",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{$json.timestamp}}",
+            "ticket_id": "={{$json.ticket_id}}",
+            "nome_completo": "={{$json.nome_completo}}",
+            "email": "={{$json.email}}",
+            "cpf": "={{$json.cpf}}",
+            "atividade_id": "={{$json.atividade_id}}",
+            "atividade_nome": "={{$json.atividade_nome}}",
+            "status": "CONFIRMADA",
+            "qr_code_url": "={{`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent($json.qr_payload)}&size=300x300`}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-save-014",
+      "name": "Salvar Inscricao",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [2460, 820],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Atividades_DezembroVermelho",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$node['Gerar Ticket'].json.atividade_id}}",
+            "vagas_preenchidas": "={{parseInt($node['Gerar Ticket'].json.vagas_preenchidas) + 1}}",
+            "vagas_disponiveis": "={{parseInt($node['Gerar Ticket'].json.vagas_disponiveis) - 1}}"
+          },
+          "matchingColumns": ["id"]
+        },
+        "options": {}
+      },
+      "id": "sheets-update-015",
+      "name": "Atualizar Capacidade",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [2680, 820],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$node['Gerar Ticket'].json.email}}",
+        "subject": "Confirmacao de Inscricao - Dezembro Vermelho 2025",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { background-color: #c41e3a; color: white; padding: 20px; text-align: center; }\n    .content { background-color: #f9f9f9; padding: 20px; margin-top: 20px; }\n    .ticket { background-color: white; border: 2px solid #c41e3a; padding: 20px; margin: 20px 0; }\n    .qr-code { text-align: center; margin: 20px 0; }\n    .info { margin: 10px 0; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Dezembro Vermelho 2025</h1>\n      <h2>Inscricao Confirmada!</h2>\n    </div>\n    <div class=\"content\">\n      <p>Ola <strong>{{$node['Gerar Ticket'].json.nome_completo}}</strong>,</p>\n      <p>Sua inscricao foi confirmada com sucesso!</p>\n      <div class=\"ticket\">\n        <h3>Detalhes da Atividade:</h3>\n        <div class=\"info\"><strong>Atividade:</strong> {{$node['Gerar Ticket'].json.atividade_nome}}</div>\n        <div class=\"info\"><strong>Data:</strong> {{$node['Gerar Ticket'].json.atividade_data}}</div>\n        <div class=\"info\"><strong>Horario:</strong> {{$node['Gerar Ticket'].json.atividade_horario}}</div>\n        <div class=\"info\"><strong>Local:</strong> {{$node['Gerar Ticket'].json.atividade_local}}</div>\n        <div class=\"info\"><strong>Codigo do Ingresso:</strong> <span style=\"font-size: 18px; color: #c41e3a;\">{{$node['Gerar Ticket'].json.ticket_id}}</span></div>\n      </div>\n      <div class=\"qr-code\">\n        <p><strong>Apresente este QR Code na entrada:</strong></p>\n        <img src=\"https://api.qrserver.com/v1/create-qr-code/?data={{encodeURIComponent($node['Gerar Ticket'].json.qr_payload)}}&size=300x300\" alt=\"QR Code\" />\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Dezembro Vermelho 2025"
+        }
+      },
+      "id": "gmail-send-016",
+      "name": "Enviar Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2900, 820],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "e1YXXxb4gOkW63Yr",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticket = $node['Gerar Ticket'].json;\n\nreturn {\n  json: {\n    status: \"success\",\n    ticket_id: ticket.ticket_id,\n    nome_completo: ticket.nome_completo,\n    email: ticket.email,\n    atividade: {\n      id: ticket.atividade_id,\n      nome: ticket.atividade_nome,\n      data: ticket.atividade_data,\n      horario: ticket.atividade_horario,\n      local: ticket.atividade_local\n    },\n    qr_payload: ticket.qr_payload\n  }\n};"
+      },
+      "id": "success-response-017",
+      "name": "Resposta Sucesso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3120, 820]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Validar Dados", "type": "main", "index": 0}]]
+    },
+    "Validar Dados": {
+      "main": [[{"node": "Tem Erro?", "type": "main", "index": 0}]]
+    },
+    "Tem Erro?": {
+      "main": [
+        [{"node": "Retornar Erro", "type": "main", "index": 0}],
+        [{"node": "Buscar Atividade", "type": "main", "index": 0}]
+      ]
+    },
+    "Buscar Atividade": {
+      "main": [[{"node": "Verificar Atividade", "type": "main", "index": 0}]]
+    },
+    "Verificar Atividade": {
+      "main": [[{"node": "Atividade OK?", "type": "main", "index": 0}]]
+    },
+    "Atividade OK?": {
+      "main": [
+        [{"node": "Retornar Erro Atividade", "type": "main", "index": 0}],
+        [{"node": "Buscar Duplicatas", "type": "main", "index": 0}]
+      ]
+    },
+    "Buscar Duplicatas": {
+      "main": [[{"node": "Verificar Duplicata", "type": "main", "index": 0}]]
+    },
+    "Verificar Duplicata": {
+      "main": [[{"node": "É Duplicata?", "type": "main", "index": 0}]]
+    },
+    "É Duplicata?": {
+      "main": [
+        [{"node": "Retornar Duplicata", "type": "main", "index": 0}],
+        [{"node": "Gerar Ticket", "type": "main", "index": 0}]
+      ]
+    },
+    "Gerar Ticket": {
+      "main": [[{"node": "Salvar Inscricao", "type": "main", "index": 0}]]
+    },
+    "Salvar Inscricao": {
+      "main": [[{"node": "Atualizar Capacidade", "type": "main", "index": 0}]]
+    },
+    "Atualizar Capacidade": {
+      "main": [[{"node": "Enviar Email", "type": "main", "index": 0}]]
+    },
+    "Enviar Email": {
+      "main": [[{"node": "Resposta Sucesso", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-18T04:00:00.000Z",
+  "versionId": "v9.1-manual-duplicate-check"
+}

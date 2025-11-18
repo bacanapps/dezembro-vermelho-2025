@@ -1,0 +1,11 @@
+{
+  "name": "Scanner Check-in",
+  "short_name": "Scanner",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d40000",
+  "icons": [
+    { "src": "favicon.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scanner QR — Dezembro Vermelho</title>
+  <link rel="icon" href="favicon.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    .logout-btn {
+      background: #b50000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.3s;
+    }
+    .logout-btn:hover { background: #800000; }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrapper">
+    <div class="card">
+      <div class="header">
+        <img src="assets/logo.png" class="header-logo" alt="Logo" />
+        <h1>Scanner de Check-in</h1>
+        <p class="subtitle" id="userInfo"></p>
+      </div>
+
+      <div class="scanner-container">
+        <div id="reader" class="scanner-box"></div>
+        <div id="status" class="scanner-status">Inicializando câmera...</div>
+      </div>
+
+      <div class="manual-entry">
+        <h3>Inserir manualmente</h3>
+        <input type="text" id="manualTicket" placeholder="Digite o código (ex: DV25-ABC1234)" />
+        <button id="manualSubmit" class="primary">Enviar</button>
+      </div>
+
+      <button id="logoutBtn" class="logout-btn">Sair</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const auth = urlParams.get("auth");
+      const staffName = decodeURIComponent(urlParams.get("staffName") || "");
+      const statusEl = document.getElementById("status");
+      const userInfo = document.getElementById("userInfo");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const webhookUrl = "https://n8n.bebot.co/webhook/checkin-dv-2025";
+
+      // 🔊 Preload sounds to allow playback on iOS/Android
+      const beepSuccess = new Audio("assets/success.mp3");
+      const beepError = new Audio("assets/error.mp3");
+      [beepSuccess, beepError].forEach(audio => audio.load());
+
+      // Display logged-in staff name
+      userInfo.textContent = staffName
+        ? `Olá, ${staffName}!`
+        : "Usuário não identificado.";
+
+      // Logout handler
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "login.html";
+      });
+
+      // Function to send the check-in request
+      const sendCheckin = async (ticketId) => {
+        try {
+          statusEl.textContent = "Verificando ingresso...";
+          statusEl.style.color = "#000";
+          const resp = await fetch(
+            `${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}`
+          );
+          const result = await resp.json();
+          console.log("Resposta:", result);
+
+          if (result.alreadyChecked) {
+            statusEl.textContent = result.message || "⚠️ Já realizou check-in.";
+            statusEl.style.color = "#d49b00";
+            beepError.play().catch(()=>{});
+          } else if (result.success || result.checked_in) {
+            statusEl.textContent = "✅ Check-in registrado com sucesso!";
+            statusEl.style.color = "green";
+            beepSuccess.play().catch(()=>{});
+          } else {
+            statusEl.textContent = result.message || "❌ Erro ao processar check-in.";
+            statusEl.style.color = "red";
+            beepError.play().catch(()=>{});
+          }
+        } catch (err) {
+          console.error("Erro:", err);
+          statusEl.textContent = "Erro de conexão com o servidor.";
+          statusEl.style.color = "red";
+          beepError.play().catch(()=>{});
+        }
+      };
+
+      // Manual entry fallback
+      document.getElementById("manualSubmit").addEventListener("click", async () => {
+        const ticket = document.getElementById("manualTicket").value.trim();
+        if (!ticket) {
+          alert("Digite um código de ingresso válido (ex: DV25-XXXXXXX)");
+          return;
+        }
+        await sendCheckin(ticket);
+      });
+
+      // Initialize camera
+      if (typeof Html5Qrcode === "undefined") {
+        statusEl.textContent = "Erro: biblioteca html5-qrcode não encontrada.";
+        return;
+      }
+
+      const html5QrCode = new Html5Qrcode("reader");
+      const qrConfig = { fps: 10, qrbox: 250 };
+
+      const onScanSuccess = async (decodedText) => {
+        console.log("QR detectado:", decodedText);
+        html5QrCode.stop().catch(() => {});
+        statusEl.textContent = "QR Code detectado. Validando...";
+        await sendCheckin(decodedText.split("id=")[1] || decodedText.trim());
+      };
+
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          const backCamera = devices.find((d) =>
+            d.label.toLowerCase().includes("back") ||
+            d.label.toLowerCase().includes("rear") ||
+            d.label.toLowerCase().includes("environment")
+          );
+          const cameraId = backCamera ? backCamera.id : devices[0].id;
+          await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
+          statusEl.textContent = "Câmera ativa. Aponte para o QR Code do ingresso.";
+        } else {
+          statusEl.textContent = "Nenhuma câmera encontrada. Use o campo manual.";
+        }
+      } catch (err) {
+        console.error("Falha ao acessar câmera:", err);
+        statusEl.textContent = "Falha ao acessar a câmera. Use o campo manual.";
+      }
+    });
+  </script>
+</body>
+</html>

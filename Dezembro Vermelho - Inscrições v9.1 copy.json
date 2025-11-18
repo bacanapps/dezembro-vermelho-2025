@@ -1,0 +1,681 @@
+{
+  "name": "Dezembro Vermelho - Inscrições v9.1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inscricao-dv-2025",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "http://localhost:8001,https://localhost:8001"
+        }
+      },
+      "id": "a863deba-7b20-41cc-be1d-002d5673df8b",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2368,
+        -160
+      ],
+      "webhookId": "inscricao-dv-2025"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get data from webhook\nconst webhookData = $node[\"Webhook\"].json;\nconst bodyData = webhookData.body;\n\nlet nome_completo, email, atividade, cpf;\n\nif (bodyData && bodyData.nome_completo) {\n  nome_completo = bodyData.nome_completo;\n  email = bodyData.email;\n  atividade = bodyData.atividade;\n  cpf = bodyData.cpf || \"\";\n}\n\nif (!nome_completo || !email || !atividade) {\n  return {\n    json: {\n      status: \"error\",\n      message: \"Campos obrigatorios faltando\",\n      error: true,\n      httpCode: 400\n    }\n  };\n}\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(email)) {\n  return {\n    json: {\n      status: \"error\",\n      message: \"Email invalido\",\n      error: true,\n      httpCode: 400\n    }\n  };\n}\n\nreturn {\n  json: {\n    nome_completo: nome_completo.trim(),\n    email: email.toLowerCase().trim(),\n    cpf: cpf.trim(),\n    atividade: String(atividade).trim(),\n    validated: true\n  }\n};"
+      },
+      "id": "98c38676-9789-4a34-9451-363edf35a89a",
+      "name": "Validar Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.error}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "e79b582b-c6bc-4583-9c7e-029cc4236b00",
+      "name": "Tem Erro?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1920,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: $input.first().json };"
+      },
+      "id": "5c3bf45b-55a6-4a4b-8fc9-7b36db1566d6",
+      "name": "Retornar Erro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1712,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Atividades_DezembroVermelho",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "id",
+              "lookupValue": "={{$json.atividade}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f873147e-6570-4660-b5df-9af299e55b97",
+      "name": "Buscar Atividade",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -1712,
+        -48
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const activities = $input.all();\nconst validatedData = $node[\"Validar Dados\"].json;\n\nif (activities.length === 0) {\n  return {\n    json: {\n      error: true,\n      status: \"error\",\n      message: \"Atividade nao encontrada\",\n      httpCode: 404\n    }\n  };\n}\n\nconst activity = activities[0].json;\nconst vagas_preenchidas = parseInt(activity.vagas_preenchidas) || 0;\nconst capacidade = parseInt(activity.capacidade) || 0;\n\nif (vagas_preenchidas >= capacidade) {\n  return {\n    json: {\n      error: true,\n      status: \"full\",\n      message: \"Capacidade maxima atingida\",\n      httpCode: 400\n    }\n  };\n}\n\nreturn {\n  json: {\n    ...activity,\n    ...validatedData,\n    error: false\n  }\n};"
+      },
+      "id": "bd107ba0-28c1-4ddb-af8c-d67cdafbd4e8",
+      "name": "Verificar Atividade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.error}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "cfdbe647-e626-47ed-8a44-0e2a0a38f234",
+      "name": "Atividade OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1264,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: $input.first().json };"
+      },
+      "id": "28fb9a6f-d19f-4383-b353-537a5246e4d4",
+      "name": "Retornar Erro Atividade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Inscricoes_DezembroVermelho",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "29392426-3b8e-44b5-a6da-51cddc064530",
+      "name": "Buscar Duplicatas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -1040,
+        80
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the validated form data from the previous workflow step\nconst validatedData = $node[\"Verificar Atividade\"].json;\nconst searchEmail = validatedData.email.toLowerCase().trim();\nconst searchAtividade = String(validatedData.atividade).trim();\n\nconsole.log('Searching for duplicate:', { searchEmail, searchAtividade });\n\n// Get ALL enrollments from Google Sheets\nconst allEnrollments = $input.all();\nconsole.log('Total enrollments found:', allEnrollments.length);\n\n// Manually filter for exact email AND activity match\nconst foundDuplicate = allEnrollments.find(item => {\n  if (!item.json || !item.json.email || !item.json.atividade_id) {\n    return false;\n  }\n  \n  const enrollmentEmail = String(item.json.email).toLowerCase().trim();\n  const enrollmentAtividade = String(item.json.atividade_id).trim();\n  \n  const isMatch = (enrollmentEmail === searchEmail) && (enrollmentAtividade === searchAtividade);\n  \n  if (isMatch) {\n    console.log('DUPLICATE FOUND:', item.json);\n  }\n  \n  return isMatch;\n});\n\nif (foundDuplicate && foundDuplicate.json.ticket_id) {\n  // Duplicate found - return error response\n  console.log('Returning duplicate response with ticket:', foundDuplicate.json.ticket_id);\n  return {\n    json: {\n      duplicate: true,\n      status: \"duplicate\",\n      message: \"Voce ja esta inscrito nesta atividade\",\n      ticket_id: foundDuplicate.json.ticket_id,\n      httpCode: 400\n    }\n  };\n}\n\n// No duplicate - continue with enrollment\nconsole.log('No duplicate found - proceeding with enrollment');\nreturn {\n  json: {\n    ...validatedData,\n    duplicate: false\n  }\n};"
+      },
+      "id": "d6559ab8-944d-4613-a942-8b03fb7a87a7",
+      "name": "Verificar Duplicata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        80
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.duplicate}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "1d4b3d0e-094f-48eb-ad24-a4c26b264290",
+      "name": "É Duplicata?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return { json: $input.first().json };"
+      },
+      "id": "133120fe-4df0-4a8a-a648-d31871d926cd",
+      "name": "Retornar Duplicata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const shortid = () => Math.random().toString(36).substring(2, 9).toUpperCase();\nconst data = $input.first().json;\n\nconst ticket_id = `DV25-${shortid()}`;\nconst qr_payload = `https://scanner.bebot.co/scanner?id=${ticket_id}`;\n\nreturn {\n  json: {\n    ticket_id,\n    qr_payload,\n    nome_completo: data.nome_completo,\n    email: data.email,\n    cpf: data.cpf,\n    atividade_id: data.id || data.atividade,\n    atividade_nome: data.nome_atividade || \"Atividade\",\n    atividade_data: data.data,\n    atividade_horario: data.horario,\n    atividade_local: data.local,\n    vagas_preenchidas: data.vagas_preenchidas,\n    vagas_disponiveis: data.vagas_disponiveis,\n    capacidade: data.capacidade,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "71c078f8-20b2-40f4-879f-8ef78e11989c",
+      "name": "Gerar Ticket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Inscricoes_DezembroVermelho",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{$json.timestamp}}",
+            "ticket_id": "={{$json.ticket_id}}",
+            "nome_completo": "={{$json.nome_completo}}",
+            "email": "={{$json.email}}",
+            "cpf": "={{$json.cpf}}",
+            "atividade_id": "={{$json.atividade_id}}",
+            "atividade_nome": "={{$json.atividade_nome}}",
+            "status": "CONFIRMADA",
+            "qr_code_url": "={{`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent($json.qr_payload)}&size=300x300`}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "c1dd9057-1a4b-4687-8854-c644abd3b15a",
+      "name": "Salvar Inscricao",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Atividades_DezembroVermelho",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{$node['Gerar Ticket'].json.atividade_id}}",
+            "vagas_preenchidas": "={{parseInt($node['Gerar Ticket'].json.vagas_preenchidas) + 1}}",
+            "vagas_disponiveis": "={{parseInt($node['Gerar Ticket'].json.vagas_disponiveis) - 1}}",
+            "row_number": 0
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "horario",
+              "displayName": "horario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nome_atividade",
+              "displayName": "nome_atividade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tipo",
+              "displayName": "tipo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "local",
+              "displayName": "local",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "capacidade",
+              "displayName": "capacidade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "vagas_preenchidas",
+              "displayName": "vagas_preenchidas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vagas_disponiveis",
+              "displayName": "vagas_disponiveis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "13b7ce0c-3b3c-4c1b-b558-76fd0b2aa652",
+      "name": "Atualizar Capacidade",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        64,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$node['Gerar Ticket'].json.email}}",
+        "subject": "Confirmacao de Inscricao - Dezembro Vermelho 2025",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { background-color: #c41e3a; color: white; padding: 20px; text-align: center; }\n    .content { background-color: #f9f9f9; padding: 20px; margin-top: 20px; }\n    .ticket { background-color: white; border: 2px solid #c41e3a; padding: 20px; margin: 20px 0; }\n    .qr-code { text-align: center; margin: 20px 0; }\n    .info { margin: 10px 0; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Dezembro Vermelho 2025</h1>\n      <h2>Inscricao Confirmada!</h2>\n    </div>\n    <div class=\"content\">\n      <p>Ola <strong>{{$node['Gerar Ticket'].json.nome_completo}}</strong>,</p>\n      <p>Sua inscricao foi confirmada com sucesso!</p>\n      <div class=\"ticket\">\n        <h3>Detalhes da Atividade:</h3>\n        <div class=\"info\"><strong>Atividade:</strong> {{$node['Gerar Ticket'].json.atividade_nome}}</div>\n        <div class=\"info\"><strong>Data:</strong> {{$node['Gerar Ticket'].json.atividade_data}}</div>\n        <div class=\"info\"><strong>Horario:</strong> {{$node['Gerar Ticket'].json.atividade_horario}}</div>\n        <div class=\"info\"><strong>Local:</strong> {{$node['Gerar Ticket'].json.atividade_local}}</div>\n        <div class=\"info\"><strong>Codigo do Ingresso:</strong> <span style=\"font-size: 18px; color: #c41e3a;\">{{$node['Gerar Ticket'].json.ticket_id}}</span></div>\n      </div>\n      <div class=\"qr-code\">\n        <p><strong>Apresente este QR Code na entrada:</strong></p>\n        <img src=\"https://api.qrserver.com/v1/create-qr-code/?data={{encodeURIComponent($node['Gerar Ticket'].json.qr_payload)}}&size=300x300\" alt=\"QR Code\" />\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Dezembro Vermelho 2025"
+        }
+      },
+      "id": "fd8508c4-6a1c-4538-9548-2079c6acdd9c",
+      "name": "Enviar Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        208
+      ],
+      "webhookId": "a244d7be-0764-4d5a-b794-143e6fbecb28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "e1YXXxb4gOkW63Yr",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ticket = $node['Gerar Ticket'].json;\n\nreturn {\n  json: {\n    status: \"success\",\n    ticket_id: ticket.ticket_id,\n    nome_completo: ticket.nome_completo,\n    email: ticket.email,\n    atividade: {\n      id: ticket.atividade_id,\n      nome: ticket.atividade_nome,\n      data: ticket.atividade_data,\n      horario: ticket.atividade_horario,\n      local: ticket.atividade_local\n    },\n    qr_payload: ticket.qr_payload\n  }\n};"
+      },
+      "id": "433e4b6e-2e43-4044-a157-bc2084367bbf",
+      "name": "Resposta Sucesso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Workflow Documentation: Dezembro Vermelho - Inscrições v9.1\n\n---\n\n### 1. High-Level Summary\n\nThis workflow receives registration requests for the “Dezembro Vermelho 2025” event via an HTTP webhook, validates and normalizes the submitted data, checks event capacity and duplicate registrations, and then issues a ticket. Confirmed registrations are stored in Google Sheets, a confirmation email with a QR code is sent via Gmail, and a structured JSON response is returned to the caller.\n\n---\n\n### 2. Trigger(s) & Entry Points\n\n- **Trigger Type:** Webhook\n- **Node:** `Webhook`\n- **HTTP Details:**\n  - **Method:** `POST`\n  - **Path:** `inscricao-dv-2025`\n  - **Response Mode:** `lastNode` (the data returned by the last executed node is sent as the HTTP response)\n  - **CORS / Allowed Origins (for browser clients):**\n    - `http://localhost:8001`\n    - `https://localhost:8001`\n- **Expected Request Body (from validation logic):**\n  - `nome_completo` (string, required)\n  - `email` (string, required; must match a basic `local@domain.tld` pattern)\n  - `atividade` (string/ID, required; used to look up the activity in Google Sheets)\n  - `cpf` (string, optional)\n\n---\n\n### 3. Step-by-Step Logic Flow\n\nBelow is the logical flow following the connections in the workflow.\n\n#### 3.1 Webhook Entry\n\n1. **Node:** `Webhook` (type: `webhook`)\n   - **Purpose:** Entry point for front-end or external callers to submit registrations via `POST /inscricao-dv-2025`.\n   - **Output:** Raw request data, including `body`, is passed to the next node.\n\n   **Control Flow:**\n   - On any incoming request, execution proceeds directly to `Validar Dados`.\n\n---\n\n#### 3.2 Input Validation & Normalization\n\n2. **Node:** `Validar Dados` (type: `code`)\n   - **Purpose:**\n     - Extracts registration fields from the webhook JSON.\n     - Validates required fields and basic email format.\n     - Normalizes/cleans values before downstream processing.\n   - **Key Logic:**\n     - Reads `webhookData = $node[\"Webhook\"].json` and `bodyData = webhookData.body`.\n     - Extracts:\n       - `nome_completo`\n       - `email`\n       - `atividade`\n       - `cpf` (optional, defaulting to empty string if missing)\n     - Validation rules:\n       - If `nome_completo`, `email`, or `atividade` is missing:\n         - Returns:\n           - `status: \"error\"`\n           - `message: \"Campos obrigatorios faltando\"`\n           - `error: true`\n           - `httpCode: 400`\n       - If `email` does not match the regex `/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/`:\n         - Returns:\n           - `status: \"error\"`\n           - `message: \"Email invalido\"`\n           - `error: true`\n           - `httpCode: 400`\n       - Otherwise returns a normalized payload:\n         - `nome_completo: trimmed`\n         - `email: lowercased & trimmed`\n         - `cpf: trimmed`\n         - `atividade: stringified & trimmed`\n         - `validated: true`\n\n   **Control Flow:**\n   - Output goes to the `Tem Erro?` node.\n\n3. **Node:** `Tem Erro?` (type: `if`)\n   - **Purpose:** Route execution based on the presence of a validation error.\n   - **Condition:**\n     - Checks if `{{$json.error}} == true`.\n   - **Branches:**\n     - **True (Error Path):** Go to `Retornar Erro`.\n     - **False (Valid Data Path):** Go to `Buscar Atividade`.\n\n4. **Node:** `Retornar Erro` (type: `code`)\n   - **Purpose:** Pass through the error object from validation unchanged as the final response.\n   - **Logic:** `return { json: $input.first().json };`\n   - **Effect:** Because the webhook is in `responseMode: lastNode`, whatever JSON this node returns becomes the HTTP response body (containing `status`, `message`, `error`, and `httpCode`).\n\n   **Error Handling Note:**\n   - No explicit HTTP status setting node is present; `httpCode` is carried as a field in the JSON payload for the caller to interpret.\n\n---\n\n#### 3.3 Activity Lookup & Capacity Check\n\n5. **Node:** `Buscar Atividade` (type: `googleSheets`)\n   - **Purpose:** Fetch metadata of the requested activity from the activities sheet.\n   - **Operation:** `read` (implied by configuration; using filters)\n   - **Configuration:**\n     - Spreadsheet ID: `1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8`\n     - Sheet name: `Atividades_DezembroVermelho`\n     - Filter:\n       - `lookupColumn: \"id\"`\n       - `lookupValue: \"={{$json.atividade}}\"` (from validated payload)\n   - **Output:** One or more rows representing the activity (if found).\n\n   **Control Flow:**\n   - Output is sent to `Verificar Atividade`.\n\n6. **Node:** `Verificar Atividade` (type: `code`)\n   - **Purpose:**\n     - Ensure the requested activity exists.\n     - Check if the activity still has available capacity.\n     - Merge activity info with the validated registration data.\n   - **Key Logic:**\n     - `activities = $input.all()` (rows from `Buscar Atividade`).\n     - `validatedData = $node[\"Validar Dados\"].json`.\n     - If `activities.length === 0`:\n       - Returns:\n         - `error: true`\n         - `status: \"error\"`\n         - `message: \"Atividade nao encontrada\"`\n         - `httpCode: 404`\n     - Else:\n       - `activity = activities[0].json`\n       - `vagas_preenchidas = parseInt(activity.vagas_preenchidas) || 0`\n       - `capacidade = parseInt(activity.capacidade) || 0`\n       - If `vagas_preenchidas >= capacidade`:\n         - Returns:\n           - `error: true`\n           - `status: \"full\"`\n           - `message: \"Capacidade maxima atingida\"`\n           - `httpCode: 400`\n       - Else (capacity available):\n         - Returns merged payload:\n           - All `activity` fields\n           - All fields from `validatedData`\n           - `error: false`\n\n   **Control Flow:**\n   - Output goes to `Atividade OK?`.\n\n7. **Node:** `Atividade OK?` (type: `if`)\n   - **Purpose:** Route based on whether a capacity/activity-related error occurred.\n   - **Condition:**\n     - Checks if `{{$json.error}} == true`.\n   - **Branches:**\n     - **True (Error Path):** Go to `Retornar Erro Atividade`.\n     - **False (Valid Activity Path):** Go to `Buscar Duplicatas`.\n\n8. **Node:** `Retornar Erro Atividade` (type: `code`)\n   - **Purpose:** Return any activity-related error unchanged as the final response.\n   - **Logic:** `return { json: $input.first().json };`\n   - **Effect:** Sends JSON like `\"Atividade nao encontrada\"` or `\"Capacidade maxima atingida\"` back to the HTTP caller.\n\n---\n\n#### 3.4 Duplicate Registration Check\n\n9. **Node:** `Buscar Duplicatas` (type: `googleSheets`, `alwaysOutputData: true`)\n   - **Purpose:** Load all existing registrations to check for duplicates.\n   - **Operation:** `read` (all rows)\n   - **Configuration:**\n     - Spreadsheet ID: `1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8`\n     - Sheet name: `Inscricoes_DezembroVermelho`\n     - No filters defined, so the node returns all rows.\n   - **Output:** An array of existing registrations.\n\n   **Control Flow:**\n   - Output goes to `Verificar Duplicata`.\n\n10. **Node:** `Verificar Duplicata` (type: `code`, `alwaysOutputData: true`)\n    - **Purpose:** Determine if the current person is already registered for the same activity.\n    - **Key Logic:**\n      - `validatedData = $node[\"Verificar Atividade\"].json`\n      - `searchEmail = validatedData.email.toLowerCase().trim()`\n      - `searchAtividade = String(validatedData.atividade).trim()`\n      - `allEnrollments = $input.all()` (rows from `Buscar Duplicatas`)\n      - Scans `allEnrollments` for a row where:\n        - `item.json.email` exists\n        - `item.json.atividade_id` exists\n        - `enrollmentEmail === searchEmail`\n        - `enrollmentAtividade === searchAtividade`\n      - If a duplicate is found and `foundDuplicate.json.ticket_id` is present:\n        - Returns:\n          - `duplicate: true`\n          - `status: \"duplicate\"`\n          - `message: \"Voce ja esta inscrito nesta atividade\"`\n          - `ticket_id: <existing ticket ID>`\n          - `httpCode: 400`\n      - If no duplicate found:\n        - Returns:\n          - All fields from `validatedData`\n          - `duplicate: false`\n\n    **Control Flow:**\n    - Output goes to `É Duplicata?`.\n\n11. **Node:** `É Duplicata?` (type: `if`)\n    - **Purpose:** Branch based on duplicate detection.\n    - **Condition:**\n      - Checks if `{{$json.duplicate}} == true`.\n    - **Branches:**\n      - **True (Duplicate):** Go to `Retornar Duplicata`.\n      - **False (New Registration):** Go to `Gerar Ticket`.\n\n12. **Node:** `Retornar Duplicata` (type: `code`)\n    - **Purpose:** Return a duplicate-registration error (with ticket info, if available).\n    - **Logic:** `return { json: $input.first().json };`\n    - **Effect:** Sends JSON with `status: \"duplicate\"` and `ticket_id` (existing) back to the caller.\n\n---\n\n#### 3.5 Ticket Generation & Persistence\n\n13. **Node:** `Gerar Ticket` (type: `code`)\n    - **Purpose:** Create a unique ticket ID and build the payload used for storage, QR generation, and email.\n    - **Key Logic:**\n      - Defines `shortid()` using `Math.random().toString(36).substring(2, 9).toUpperCase()`.\n      - `data = $input.first().json`\n      - `ticket_id = \"DV25-\" + shortid()`\n      - `qr_payload = \"https://scanner.bebot.co/scanner?id=\" + ticket_id`\n      - Returns a new JSON with:\n        - `ticket_id`\n        - `qr_payload`\n        - `nome_completo: data.nome_completo`\n        - `email: data.email`\n        - `cpf: data.cpf`\n        - `atividade_id: data.id || data.atividade`\n        - `atividade_nome: data.nome_atividade || \"Atividade\"`\n        - `atividade_data: data.data`\n        - `atividade_horario: data.horario`\n        - `atividade_local: data.local`\n        - `vagas_preenchidas: data.vagas_preenchidas`\n        - `vagas_disponiveis: data.vagas_disponiveis`\n        - `capacidade: data.capacidade`\n        - `timestamp: new Date().toISOString()`\n\n    **Control Flow:**\n    - Output goes to `Salvar Inscricao`.\n\n14. **Node:** `Salvar Inscricao` (type: `googleSheets`)\n    - **Purpose:** Persist the confirmed registration into the registrations sheet.\n    - **Operation:** `append`\n    - **Configuration:**\n      - Spreadsheet ID: `1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8`\n      - Sheet name: `Inscricoes_DezembroVermelho`\n      - Columns mapping (from the JSON returned by `Gerar Ticket`):\n        - `timestamp: {{$json.timestamp}}`\n        - `ticket_id: {{$json.ticket_id}}`\n        - `nome_completo: {{$json.nome_completo}}`\n        - `email: {{$json.email}}`\n        - `cpf: {{$json.cpf}}`\n        - `atividade_id: {{$json.atividade_id}}`\n        - `atividade_nome: {{$json.atividade_nome}}`\n        - `status: \"CONFIRMADA\"`\n        - `qr_code_url: \"https://api.qrserver.com/v1/create-qr-code/?data=\" + encodeURIComponent($json.qr_payload) + \"&size=300x300\"`\n\n    **Control Flow:**\n    - Output goes to `Atualizar Capacidade`.\n\n15. **Node:** `Atualizar Capacidade` (type: `googleSheets`)\n    - **Purpose:** Update the activity row to increment filled slots and decrement available slots.\n    - **Operation:** `update`\n    - **Configuration:**\n      - Spreadsheet ID: `1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8`\n      - Sheet name: `Atividades_DezembroVermelho`\n      - Matching column:\n        - `id`\n      - Values to write:\n        - `id: \"={{$node['Gerar Ticket'].json.atividade_id}}\"`\n        - `vagas_preenchidas: \"={{parseInt($node['Gerar Ticket'].json.vagas_preenchidas) + 1}}\"`\n        - `vagas_disponiveis: \"={{parseInt($node['Gerar Ticket'].json.vagas_disponiveis) - 1}}\"`\n        - `row_number: 0` (provided in mapping; in the schema it is marked `readOnly: true`, so behavior depends on n8n/connector handling but it is configured here as 0)\n      - A schema definition is included in the node configuration for columns like `id`, `data`, `horario`, `nome_atividade`, `tipo`, `local`, `capacidade`, `vagas_preenchidas`, `vagas_disponiveis`, `row_number`.\n\n    **Control Flow:**\n    - Output goes to `Enviar Email`.\n\n---\n\n#### 3.6 Email Notification & HTTP Response\n\n16. **Node:** `Enviar Email` (type: `gmail`)\n    - **Purpose:** Send a confirmation email for successful registrations.\n    - **Configuration:**\n      - `sendTo: \"={{$node['Gerar Ticket'].json.email}}\"`\n      - `subject: \"Confirmacao de Inscricao - Dezembro Vermelho 2025\"`\n      - `options.appendAttribution: false`\n      - `options.senderName: \"Dezembro Vermelho 2025\"`\n      - `message:` HTML email body including:\n        - Participant name: `{{$node['Gerar Ticket'].json.nome_completo}}`\n        - Activity details:\n          - `atividade_nome`\n          - `atividade_data`\n          - `atividade_horario`\n          - `atividade_local`\n        - Ticket code: `{{$node['Gerar Ticket'].json.ticket_id}}`\n        - Embedded QR code `<img>` that calls:\n          - `https://api.qrserver.com/v1/create-qr-code/?data={{encodeURIComponent($node['Gerar Ticket'].json.qr_payload)}}&size=300x300`\n    - **Effect:** Sends the email via Gmail using configured OAuth credentials.\n\n    **Control Flow:**\n    - Output goes to `Resposta Sucesso`.\n\n17. **Node:** `Resposta Sucesso` (type: `code`)\n    - **Purpose:** Shape the final success payload returned to the HTTP caller.\n    - **Key Logic:**\n      - `ticket = $node['Gerar Ticket'].json`\n      - Returns:\n        ```json\n        {\n          \"status\": \"success\",\n          \"ticket_id\": ticket.ticket_id,\n          \"nome_completo\": ticket.nome_completo,\n          \"email\": ticket.email,\n          \"atividade\": {\n            \"id\": ticket.atividade_id,\n            \"nome\": ticket.atividade_nome,\n            \"data\": ticket.atividade_data,\n            \"horario\": ticket.atividade_horario,\n            \"local\": ticket.atividade_local\n          },\n          \"qr_payload\": ticket.qr_payload\n        }\n        ```\n    - **Effect:** This JSON becomes the HTTP response body from the webhook (status code controlled by n8n’s webhook node configuration, while this node sets the content).\n\n---\n\n### 4. External Dependencies\n\n1. **Google Sheets**\n   - **Node(s) Used:**\n     - `Buscar Atividade`\n     - `Buscar Duplicatas`\n     - `Salvar Inscricao`\n     - `Atualizar Capacidade`\n   - **Actions:**\n     - Read activity records from `Atividades_DezembroVermelho` by `id`.\n     - Read all registration records from `Inscricoes_DezembroVermelho`.\n     - Append new registration rows to `Inscricoes_DezembroVermelho`.\n     - Update capacity metrics (`vagas_preenchidas`, `vagas_disponiveis`) in `Atividades_DezembroVermelho`.\n\n2. **Gmail**\n   - **Node(s) Used:**\n     - `Enviar Email`\n   - **Actions:**\n     - Send HTML-based confirmation emails to registrants, including embedded QR codes and activity details.\n\n3. **External QR Code Generation API**\n   - **Service:** `https://api.qrserver.com`\n   - **Node(s) Used:**\n     - Indirectly by:\n       - `Salvar Inscricao` (creates `qr_code_url`)\n       - `Enviar Email` (uses `<img>` tag referencing this URL)\n   - **Actions:**\n     - Generate QR codes for check-in by encoding `qr_payload` (scanner URL with `ticket_id`).\n\n4. **Scanner / Ticket Validation Endpoint**\n   - **Service URL (as built into QR payload):** `https://scanner.bebot.co/scanner?id=<ticket_id>`\n   - **Node(s) Used:**\n     - `Gerar Ticket` (constructs `qr_payload`)\n   - **Actions:**\n     - Not directly called within this workflow; the URL is provided as a QR target to be used by external scanning/check-in systems.\n\n---\n\n### 5. Credentials Required\n\nBased on node configuration, the following credential types are required (secrets/tokens are not included here):\n\n1. **Google Sheets OAuth2 Credentials**\n   - **Used By:**\n     - `Buscar Atividade`\n     - `Buscar Duplicatas`\n     - `Salvar Inscricao`\n     - `Atualizar Capacidade`\n   - **Purpose:** Authenticate and authorize read/write operations on the specified Google Sheets.\n\n2. **Gmail OAuth2 Credentials**\n   - **Used By:**\n     - `Enviar Email`\n   - **Purpose:** Authenticate as a Gmail account to send confirmation emails.\n\n3. **Webhook Endpoint**\n   - **Used By:**\n     - `Webhook`\n   - **Note:** The webhook itself does not specify any authentication method in this JSON; any access control would need to be enforced externally (e.g., by network configuration or additional logic not present here).\n\n---\n\n### 6. Internal n8n Dependencies (Calls & Communications)\n\n- **Calls Out (Execute Workflow / Sub-Workflows):**\n  - No `Execute Workflow` or similar internal call nodes are present in this JSON.\n  - This workflow appears to be self-contained: it does not trigger other n8n workflows directly.\n\n- **Is Called By (Potential Upstream Workflows or Systems):**\n  - Designed to be called via the webhook path `inscricao-dv-2025`.\n  - The JSON does not specify which external system or n8n workflow invokes this endpoint; likely callers include:\n    - Front-end registration forms or portals sending `POST` requests to this path.\n    - Other systems that can issue HTTP POSTs with the required fields.\n  - **Status:** Specific upstream workflows or services are **not defined** in this JSON and would need to be documented separately.\n\n---",
+        "height": 9904,
+        "width": 3008
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2400,
+        352
+      ],
+      "typeVersion": 1,
+      "id": "0114a3c6-c192-4c15-b801-c9fe882e6746",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Dados": {
+      "main": [
+        [
+          {
+            "node": "Tem Erro?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Erro?": {
+      "main": [
+        [
+          {
+            "node": "Retornar Erro",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Atividade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Atividade": {
+      "main": [
+        [
+          {
+            "node": "Verificar Atividade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Atividade": {
+      "main": [
+        [
+          {
+            "node": "Atividade OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atividade OK?": {
+      "main": [
+        [
+          {
+            "node": "Retornar Erro Atividade",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Duplicatas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Duplicatas": {
+      "main": [
+        [
+          {
+            "node": "Verificar Duplicata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Duplicata": {
+      "main": [
+        [
+          {
+            "node": "É Duplicata?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Duplicata?": {
+      "main": [
+        [
+          {
+            "node": "Retornar Duplicata",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gerar Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Ticket": {
+      "main": [
+        [
+          {
+            "node": "Salvar Inscricao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Inscricao": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Capacidade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Capacidade": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Email": {
+      "main": [
+        [
+          {
+            "node": "Resposta Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c67506bd-5027-45fa-a862-729024af5abd",
+  "meta": {
+    "instanceId": "76a572fa0d7eb4ee792610107ff82422b94c615a9137e8ea064722e606b4ca88"
+  },
+  "id": "tMagaDvxKPY3BzsD",
+  "tags": [
+    {
+      "updatedAt": "2025-11-10T18:36:29.537Z",
+      "createdAt": "2025-11-10T18:36:29.537Z",
+      "id": "5VXHzH1QM4jo03AM",
+      "name": "dezembro vermelho"
+    },
+    {
+      "updatedAt": "2025-04-28T23:44:18.569Z",
+      "createdAt": "2025-04-28T23:44:18.569Z",
+      "id": "BWKAAM0TwaKVY3yB",
+      "name": "dathi"
+    },
+    {
+      "updatedAt": "2025-05-03T14:16:15.377Z",
+      "createdAt": "2025-05-03T14:16:15.377Z",
+      "id": "bO3swI8LPY5jn7tZ",
+      "name": "working"
+    }
+  ]
+}

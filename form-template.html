@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dezembro Vermelho 2025 - Inscrição</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 24px;
+            background: #fafafa;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #c41e3a;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .activity-info {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c41e3a;
+        }
+
+        .activity-info h2 {
+            font-size: 18px;
+            margin: 0 0 12px 0;
+            color: #c41e3a;
+        }
+
+        .activity-detail {
+            display: flex;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .activity-detail strong {
+            min-width: 100px;
+            color: #666;
+        }
+
+        .activity-detail span {
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 18px;
+            background-color: #c41e3a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #a61a32;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .msg {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .msg.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .msg.info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .msg a {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background-color: #c41e3a;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .msg a:hover {
+            background-color: #a61a32;
+        }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error-container h2 {
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <h1>🎗 Dezembro Vermelho 2025</h1>
+
+        <div class="loading" id="loading">
+            Carregando informações da atividade...
+        </div>
+
+        <div id="formContainer" style="display: none;">
+            <div class="activity-info" id="activityInfo"></div>
+
+            <form id="inscricaoForm">
+                <label for="nome_completo">Nome completo*</label>
+                <input type="text" name="nome_completo" id="nome_completo" required />
+
+                <label for="email">E-mail*</label>
+                <input type="email" name="email" id="email" required />
+
+                <label for="cpf">CPF (opcional)</label>
+                <input type="text" name="cpf" id="cpf" maxlength="14" placeholder="000.000.000-00" />
+
+                <!-- hidden input now stores the ACTIVITY ID -->
+                <input type="hidden" name="atividade" id="atividade" value="" />
+
+                <label style="display:flex;align-items:center;font-size:13px;margin-top:16px;">
+                    <input type="checkbox" required style="width:auto;margin-right:8px;">
+                    Autorizo o uso dos meus dados conforme a LGPD.
+                </label>
+
+                <button type="submit">Confirmar Inscrição</button>
+                <div id="msg" class="msg"></div>
+            </form>
+        </div>
+
+        <div class="footer">
+            © 2025 Ministério da Saúde – Programa Dezembro Vermelho<br />
+            40 anos da resposta brasileira à AIDS
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const CONFIG = {
+            // Update this URL to match your n8n workflow webhook
+            webhookURL: "https://n8n.bebot.co/webhook/inscricao-dv-2025",
+
+            // Live data from n8n webhook (real-time availability from Google Sheets)
+            activitiesDataURL: "https://n8n.bebot.co/webhook/activities-json"
+        };
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+
+        /**
+         * Format CPF input with mask: 000.000.000-00
+         */
+        function formatCPF(value) {
+            return value
+                .replace(/\D/g, '') // Remove non-digits
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+                .replace(/(-\d{2})\d+?$/, '$1'); // Limit to 11 digits
+        }
+
+        /**
+         * Remove CPF formatting to get only numbers
+         */
+        function cleanCPF(value) {
+            return value.replace(/\D/g, '');
+        }
+
+        /**
+         * Display error message
+         */
+        function showError(message) {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="error-container">
+                    <h2>⚠️ Erro</h2>
+                    <p>${message}</p>
+                    <button onclick="window.history.back()" style="margin-top: 20px;">
+                        ← Voltar
+                    </button>
+                </div>
+                <div class="footer">
+                    © 2025 Ministério da Saúde – Programa Dezembro Vermelho
+                </div>
+            `;
+        }
+
+        // ============================================
+        // MAIN APPLICATION
+        // ============================================
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Get activity ID from URL parameter (?id=1)
+            const params = new URLSearchParams(window.location.search);
+            const atividadeId = params.get("id")?.trim();
+
+            if (!atividadeId) {
+                showError("ID da atividade não especificado. Acesse através da página de listagem de atividades.");
+                return;
+            }
+
+            try {
+                // Fetch activities data
+                const response = await fetch(CONFIG.activitiesDataURL);
+                if (!response.ok) {
+                    throw new Error("Não foi possível carregar os dados das atividades.");
+                }
+
+                const data = await response.json();
+
+                // Handle both formats: plain array or wrapped in {activities: [...]}
+                const activities = Array.isArray(data) ? data : data.activities;
+                const activity = activities.find(a => String(a.id) === String(atividadeId));
+
+                if (!activity) {
+                    showError(`Atividade #${atividadeId} não encontrada.`);
+                    return;
+                }
+
+                // Check if activity has available spots
+                if (activity.vagas_disponiveis <= 0) {
+                    showError(`As inscrições para esta atividade estão encerradas (capacidade máxima atingida).`);
+                    return;
+                }
+
+                // Display activity information
+                displayActivityInfo(activity);
+
+                // Set hidden field value
+                document.getElementById("atividade").value = activity.id;
+
+                // Show form
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("formContainer").style.display = "block";
+
+                // Check if user has already enrolled in this activity
+                checkExistingEnrollment(activity.id);
+
+                // Setup form handlers
+                setupFormHandlers();
+
+            } catch (error) {
+                console.error("Error loading activity:", error);
+                showError(`Erro ao carregar dados da atividade: ${error.message}`);
+            }
+        });
+
+        /**
+         * Display activity information in the form
+         */
+        function displayActivityInfo(activity) {
+            const infoDiv = document.getElementById("activityInfo");
+            infoDiv.innerHTML = `
+                <h2>${activity.nome_atividade}</h2>
+                <div class="activity-detail">
+                    <strong>Data:</strong>
+                    <span>${activity.data}</span>
+                </div>
+                <div class="activity-detail">
+                    <strong>Horário:</strong>
+                    <span>${activity.horario}</span>
+                </div>
+                <div class="activity-detail">
+                    <strong>Local:</strong>
+                    <span>${activity.local}</span>
+                </div>
+                <div class="activity-detail">
+                    <strong>Tipo:</strong>
+                    <span>${activity.tipo}</span>
+                </div>
+                <div class="activity-detail">
+                    <strong>Vagas:</strong>
+                    <span>${activity.vagas_disponiveis} de ${activity.capacidade} disponíveis</span>
+                </div>
+            `;
+        }
+
+        /**
+         * Check if user has already enrolled in this activity
+         */
+        function checkExistingEnrollment(activityId) {
+            const emailInput = document.getElementById("email");
+            const msg = document.getElementById("msg");
+
+            if (!emailInput || !msg) {
+                console.warn("Email input or msg div not found");
+                return;
+            }
+
+            // Listen for email input changes to check for duplicates
+            emailInput.addEventListener("blur", () => {
+                const email = emailInput.value.trim().toLowerCase();
+                if (!email) return;
+
+                const previousEnrollments = JSON.parse(localStorage.getItem('dv_enrollments') || '[]');
+                const enrollmentKey = `${email}_${activityId}`;
+
+                if (previousEnrollments.includes(enrollmentKey)) {
+                    msg.innerHTML = `
+                        ⚠️ <strong>Atenção:</strong> Você já possui uma inscrição nesta atividade com este email!<br>
+                        Verifique sua caixa de entrada ou escolha uma atividade diferente.<br>
+                        <a href="index.html">Ver Outras Atividades</a>
+                    `;
+                    msg.className = "msg error";
+                    msg.style.display = "block";
+                } else {
+                    if (msg.style.display !== "none") {
+                        msg.style.display = "none";
+                        msg.innerHTML = "";
+                    }
+                }
+            });
+        }
+
+        /**
+         * Setup form input handlers and submit
+         */
+        function setupFormHandlers() {
+            const form = document.getElementById("inscricaoForm");
+            const cpfInput = document.getElementById("cpf");
+            const msg = document.getElementById("msg");
+
+            if (!form || !cpfInput || !msg) {
+                console.error("Form elements not found!", {form, cpfInput, msg});
+                return;
+            }
+
+            console.log("✅ Form handlers setup initiated");
+
+            // CPF input formatting
+            cpfInput.addEventListener("input", (e) => {
+                e.target.value = formatCPF(e.target.value);
+            });
+
+            // Form submission
+            form.addEventListener("submit", async (e) => {
+                console.log("🚀 Form submit triggered");
+                e.preventDefault();
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                msg.textContent = "⏳ Enviando inscrição...";
+                msg.className = "msg info";
+
+                // Prepare data
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Clean CPF (remove formatting)
+                if (data.cpf) {
+                    data.cpf = cleanCPF(data.cpf);
+                }
+
+                // PRE-SUBMISSION CHECK: Verify if user already enrolled for this activity
+                const previousEnrollments = JSON.parse(localStorage.getItem('dv_enrollments') || '[]');
+                const enrollmentKey = `${data.email.toLowerCase()}_${data.atividade}`;
+
+                if (previousEnrollments.includes(enrollmentKey)) {
+                    console.log("⚠️ Pre-submission duplicate detected");
+                    msg.innerHTML = `
+                        ❌ <strong>Você já está inscrito(a) nesta atividade!</strong><br><br>
+                        Detectamos que você já se inscreveu anteriormente com este email. Verifique sua caixa de entrada para os detalhes da inscrição.<br>
+                        <a href="index.html">Ver Outras Atividades</a>
+                    `;
+                    msg.className = "msg error";
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                console.log("📤 Dados enviados:", data);
+
+                try {
+                    const response = await fetch(CONFIG.webhookURL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data),
+                    });
+
+                    console.log("📥 Resposta HTTP:", response.status);
+
+                    if (response.ok) {
+                        // Try to get response data
+                        const contentType = response.headers.get("content-type");
+                        let responseData;
+
+                        if (contentType && contentType.includes("application/json")) {
+                            responseData = await response.json();
+                            console.log("📄 Response JSON:", responseData);
+                        } else {
+                            const htmlText = await response.text();
+                            console.log("📄 Response HTML received, length:", htmlText.length);
+                            console.log("📄 First 500 chars:", htmlText.substring(0, 500));
+
+                            // Check if the HTML contains duplicate enrollment indicators
+                            const isDuplicate = htmlText.toLowerCase().includes('já está inscrito') ||
+                                              htmlText.toLowerCase().includes('já inscrito') ||
+                                              htmlText.toLowerCase().includes('duplicate') ||
+                                              htmlText.toLowerCase().includes('duplicat');
+
+                            if (isDuplicate) {
+                                console.log("❌ Duplicate registration detected in HTML response");
+                                msg.innerHTML = `
+                                    ❌ <strong>Você já está inscrito(a) nesta atividade!</strong><br><br>
+                                    Por favor, escolha uma atividade diferente ou verifique seu email para os detalhes da inscrição existente.<br>
+                                    <a href="index.html">Ver Outras Atividades</a>
+                                `;
+                                msg.className = "msg error";
+                                msg.style.display = "block";
+                                submitBtn.disabled = false;
+                                return;
+                            }
+
+                            // Check if it's a full HTML page from n8n (confirmation page)
+                            if (htmlText.includes('<!DOCTYPE') || htmlText.includes('<html')) {
+                                // CRITICAL: Check localStorage FIRST before displaying anything
+                                const previousEnrollments = JSON.parse(localStorage.getItem('dv_enrollments') || '[]');
+                                const enrollmentKey = `${data.email.toLowerCase()}_${data.atividade}`;
+
+                                console.log("🔍 Checking localStorage for:", enrollmentKey);
+                                console.log("📊 Previous enrollments:", previousEnrollments);
+
+                                if (previousEnrollments.includes(enrollmentKey)) {
+                                    console.log("❌ DUPLICATE DETECTED via localStorage - BLOCKING!");
+                                    msg.innerHTML = `
+                                        ❌ <strong>Você já está inscrito(a) nesta atividade!</strong><br><br>
+                                        Detectamos que você já se inscreveu anteriormente. Verifique seu email para os detalhes da inscrição.<br>
+                                        <a href="index.html">Ver Outras Atividades</a>
+                                    `;
+                                    msg.className = "msg error";
+                                    msg.style.display = "block";
+                                    submitBtn.disabled = false;
+
+                                    // IMPORTANT: Do NOT display the HTML response
+                                    // Do NOT track this as a new enrollment
+                                    return;
+                                }
+
+                                // Only if NO duplicate: Track this enrollment and show confirmation
+                                console.log("✅ New enrollment - tracking and displaying");
+                                previousEnrollments.push(enrollmentKey);
+                                localStorage.setItem('dv_enrollments', JSON.stringify(previousEnrollments));
+
+                                // Try to extract ticket ID from HTML response
+                                const ticketMatch = htmlText.match(/DV25-[A-Z0-9]{7}/);
+                                const ticketId = ticketMatch ? ticketMatch[0] : ('DV25-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+
+                                console.log("🎫 Extracted ticket ID:", ticketId);
+
+                                // Store confirmation data
+                                localStorage.setItem('dv_ticket_id', ticketId);
+                                localStorage.setItem('dv_nome', data.nome_completo);
+                                localStorage.setItem('dv_email', data.email);
+                                localStorage.setItem('dv_atividade', data.atividade);
+
+                                // Redirect to OUR confirmation template instead of showing n8n HTML
+                                window.location.href = 'confirmation-template.html';
+                                return;
+                            }
+                            // Otherwise, treat as simple text response
+                            responseData = { message: htmlText };
+                        }
+
+                        // Check if this is an error response (duplicate, capacity full, etc.)
+                        if (responseData.status === 'duplicate') {
+                            // DUPLICATE REGISTRATION - Show error
+                            console.log("❌ Duplicate registration detected");
+                            msg.innerHTML = `
+                                ❌ <strong>${responseData.message || 'Você já está inscrito(a) nesta atividade!'}</strong><br><br>
+                                Por favor, escolha uma atividade diferente ou verifique seu email para os detalhes da inscrição existente.<br>
+                                <a href="index.html">Ver Outras Atividades</a>
+                            `;
+                            msg.className = "msg error";
+                            msg.style.display = "block";
+                            submitBtn.disabled = false;
+                            return;
+                        } else if (responseData.status === 'full') {
+                            // CAPACITY FULL - Show error
+                            console.log("❌ Activity full");
+                            msg.textContent = `❌ ${responseData.message}`;
+                            msg.className = "msg error";
+                            msg.style.display = "block";
+                            submitBtn.disabled = false;
+                            return;
+                        } else if (responseData.status === 'error') {
+                            // GENERAL ERROR - Show error
+                            console.log("❌ Registration error");
+                            msg.innerHTML = `❌ <strong>Erro:</strong> ${responseData.message}`;
+                            msg.className = "msg error";
+                            msg.style.display = "block";
+                            submitBtn.disabled = false;
+                            return;
+                        }
+
+                        // SUCCESS - Store data and redirect
+                        console.log("✅ Registration successful");
+                        localStorage.setItem('dv_nome', data.nome_completo);
+                        localStorage.setItem('dv_email', data.email);
+                        localStorage.setItem('dv_atividade', data.atividade);
+
+                        // Try to extract ticket_id from response
+                        if (responseData.ticket_id) {
+                            localStorage.setItem('dv_ticket_id', responseData.ticket_id);
+                        } else {
+                            // Generate a temporary ticket ID if not provided
+                            const tempId = 'DV25-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+                            localStorage.setItem('dv_ticket_id', tempId);
+                        }
+
+                        // Redirect to confirmation page
+                        window.location.href = 'confirmation-template.html';
+                    } else {
+                        // Error - try to parse JSON error message
+                        const contentType = response.headers.get("content-type");
+                        let errorMessage = "Erro ao processar inscrição. Tente novamente.";
+
+                        console.log("❌ Error response:", response.status);
+                        console.log("Content-Type:", contentType);
+
+                        try {
+                            if (contentType && contentType.includes("application/json")) {
+                                const errorData = await response.json();
+                                console.log("Error data:", errorData);
+                                errorMessage = errorData.message || errorMessage;
+                            } else {
+                                const errorText = await response.text();
+                                console.log("Error text:", errorText.substring(0, 500));
+                                errorMessage = "Erro no servidor. Verifique os logs do n8n.";
+                            }
+                        } catch (parseError) {
+                            console.error("Failed to parse error:", parseError);
+                        }
+
+                        msg.innerHTML = `
+                            ❌ <strong>Erro no servidor (${response.status})</strong><br><br>
+                            ${errorMessage}<br><br>
+                            <strong>Possíveis causas:</strong><br>
+                            • O workflow n8n atual tem problemas<br>
+                            • Importe o novo workflow v7.0<br>
+                            • Ou verifique os logs do n8n para mais detalhes<br><br>
+                            <a href="index.html" style="color: #c41e3a;">← Voltar para início</a>
+                        `;
+                        msg.className = "msg error";
+                        submitBtn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error("❌ Falha:", err);
+                    msg.textContent = "❌ Falha de conexão. Verifique sua internet e tente novamente.";
+                    msg.className = "msg error";
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

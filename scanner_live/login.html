@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de Check-in - Login</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <img src="assets/logo.png" alt="Logo" class="logo" />
+    <h2>Portal de Check-in</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="E-mail" required />
+      <input type="password" id="pin" placeholder="PIN" required />
+      <button type="submit">Entrar</button>
+    </form>
+    <a href="#" id="forgotPin">Esqueceu o PIN?</a>
+    <p id="message"></p>
+  </div>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const pin = document.getElementById("pin").value.trim();
+      const message = document.getElementById("message");
+
+      try {
+        const res = await fetch("https://n8n.bebot.co/webhook/login_v2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, pin }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          const auth = encodeURIComponent(data.auth);
+          const name = encodeURIComponent(data.staff_name);
+          window.location.href = `scanner.html?auth=${auth}&staffName=${name}`;
+        } else {
+          message.textContent = data.message || "Erro ao fazer login.";
+          message.style.color = "red";
+        }
+      } catch (err) {
+        message.textContent = "Erro ao conectar ao servidor.";
+        message.style.color = "red";
+      }
+    });
+
+    document.getElementById("forgotPin").addEventListener("click", () => {
+      const email = prompt("Digite seu e-mail cadastrado:");
+      if (!email) return alert("E-mail é obrigatório.");
+      fetch("https://n8n.bebot.co/webhook/forgot-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      .then(res => res.json())
+      .then(data => alert(data.message || "Verifique seu e-mail."))
+      .catch(() => alert("Erro ao enviar solicitação."));
+    });
+  </script>
+</body>
+</html>

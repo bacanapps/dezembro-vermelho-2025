@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Generated forms (uncomment if you want to exclude generated static forms from version control)
+# forms/
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backups
+*.bak
+backup/
+
+# Exclude specific directories and files
+Archive 4.zip
+n8n backups/
+n8n broken/
+scanner_old/
+v1.0/

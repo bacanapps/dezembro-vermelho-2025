@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Local - Sistema Dezembro Vermelho</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c41e3a 0%, #a61a32 100%);
+            color: white;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status.pending {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .test-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #c41e3a;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px 10px 10px 0;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .test-btn:hover {
+            background: #a61a32;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #c41e3a;
+            background: #f9f9f9;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🧪 Teste do Sistema</h1>
+        <p class="subtitle">Dezembro Vermelho 2025 - Sistema de Inscrições</p>
+
+        <div class="card">
+            <h2>📋 Status dos Arquivos</h2>
+            <div id="fileStatus">Verificando arquivos...</div>
+        </div>
+
+        <div class="card">
+            <h2>🔗 Links de Teste</h2>
+            <p>Use estes links para testar o sistema localmente:</p>
+
+            <div style="margin-top: 20px;">
+                <a href="index.html" class="test-btn" target="_blank">
+                    📄 Abrir Página Principal (index.html)
+                </a>
+                <br>
+                <a href="form-template.html?id=1" class="test-btn" target="_blank">
+                    📝 Testar Formulário Dinâmico (Atividade #1)
+                </a>
+                <br>
+                <a href="forms/form-1.html" class="test-btn" target="_blank">
+                    📝 Testar Formulário Estático (se gerado)
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>✅ Checklist de Testes</h2>
+            <ul class="checklist">
+                <li>✓ Verificar se activities.json carrega todas as 30 atividades</li>
+                <li>✓ Testar filtros por tipo de atividade no index.html</li>
+                <li>✓ Abrir formulário e verificar se dados da atividade aparecem</li>
+                <li>✓ Testar formatação automática do CPF</li>
+                <li>✓ Tentar enviar formulário sem preencher campos obrigatórios</li>
+                <li>✓ Preencher formulário completo e enviar</li>
+                <li>✓ Verificar se email de confirmação chegou</li>
+                <li>✓ Verificar se registro foi salvo no Google Sheets</li>
+                <li>✓ Verificar se capacidade da atividade foi atualizada</li>
+                <li>✓ Testar em navegador mobile</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🔧 Como Executar os Testes</h2>
+
+            <h3 style="margin-top: 20px;">1. Iniciar Servidor Local</h3>
+            <div class="code-block">
+# Python 3
+python -m http.server 8000
+
+# OU Python 2
+python -m SimpleHTTPServer 8000
+
+# OU Node.js
+npx http-server -p 8000
+            </div>
+
+            <h3 style="margin-top: 20px;">2. Abrir no Navegador</h3>
+            <div class="code-block">http://localhost:8000/test-local.html</div>
+
+            <h3 style="margin-top: 20px;">3. Testar Funcionalidades</h3>
+            <p>Use os links acima para navegar pelas diferentes páginas do sistema.</p>
+
+            <h3 style="margin-top: 20px;">4. Verificar Console</h3>
+            <p>Abra o Console do navegador (F12) para ver logs detalhados:</p>
+            <div class="code-block">
+📤 Dados enviados: {nome_completo: "...", email: "...", ...}
+📥 Resposta: 200
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🐛 Troubleshooting</h2>
+
+            <h3>Se activities.json não carregar:</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Verifique se o arquivo existe no mesmo diretório</li>
+                <li>Abra o Console (F12) e veja o erro</li>
+                <li>Verifique se o servidor está rodando</li>
+            </ul>
+
+            <h3 style="margin-top: 20px;">Se formulário não enviar:</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Verifique a URL do webhook em form-template.html</li>
+                <li>Verifique se o n8n está online</li>
+                <li>Veja o Console (F12) para erros de CORS ou rede</li>
+            </ul>
+
+            <h3 style="margin-top: 20px;">Se forms/ não existir:</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Execute: <code>node generate-forms.js</code></li>
+                <li>Isso criará a pasta forms/ com 30 arquivos</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>📊 Informações do Sistema</h2>
+            <div id="systemInfo">
+                <p><strong>Navegador:</strong> <span id="browser"></span></p>
+                <p><strong>Plataforma:</strong> <span id="platform"></span></p>
+                <p><strong>Tela:</strong> <span id="screen"></span></p>
+                <p><strong>URL Atual:</strong> <span id="currentUrl"></span></p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 Ministério da Saúde – Programa Dezembro Vermelho</p>
+            <p>40 anos da resposta brasileira à AIDS</p>
+        </div>
+    </div>
+
+    <script>
+        // Display system information
+        document.getElementById('browser').textContent = navigator.userAgent;
+        document.getElementById('platform').textContent = navigator.platform;
+        document.getElementById('screen').textContent = `${screen.width}x${screen.height}`;
+        document.getElementById('currentUrl').textContent = window.location.href;
+
+        // Check if files exist
+        async function checkFiles() {
+            const files = [
+                'activities.json',
+                'index.html',
+                'form-template.html',
+                'generate-forms.js',
+                'README.md'
+            ];
+
+            const statusDiv = document.getElementById('fileStatus');
+            statusDiv.innerHTML = '';
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    const status = response.ok ? 'success' : 'error';
+                    const icon = response.ok ? '✅' : '❌';
+                    const text = response.ok ? 'OK' : 'Não encontrado';
+
+                    statusDiv.innerHTML += `
+                        <div class="status ${status}">
+                            <span>${icon}</span>
+                            <strong>${file}</strong>: ${text}
+                        </div>
+                    `;
+                } catch (error) {
+                    statusDiv.innerHTML += `
+                        <div class="status error">
+                            <span>❌</span>
+                            <strong>${file}</strong>: Erro ao verificar
+                        </div>
+                    `;
+                }
+            }
+
+            // Check if forms/ directory exists by trying to fetch form-1.html
+            try {
+                const response = await fetch('forms/form-1.html', { method: 'HEAD' });
+                const status = response.ok ? 'success' : 'pending';
+                const icon = response.ok ? '✅' : '⚠️';
+                const text = response.ok ? 'Gerados' : 'Execute: node generate-forms.js';
+
+                statusDiv.innerHTML += `
+                    <div class="status ${status}">
+                        <span>${icon}</span>
+                        <strong>Formulários estáticos (forms/)</strong>: ${text}
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML += `
+                    <div class="status pending">
+                        <span>⚠️</span>
+                        <strong>Formulários estáticos (forms/)</strong>: Execute: node generate-forms.js
+                    </div>
+                `;
+            }
+        }
+
+        // Run checks
+        checkFiles();
+    </script>
+
+</body>
+</html>
