@@ -1,0 +1,585 @@
+{
+  "name": "Check-in Dezembro Vermelho 2025 v2.5",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "checkin-dv-2025",
+        "options": {}
+      },
+      "id": "1406f1c7-ae3c-4bfb-a15d-23176b2ec0d5",
+      "name": "Webhook - Check-in DV 2025",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1040,
+        512
+      ],
+      "webhookId": "checkin-dv-2025"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "ticket_id",
+              "value": "={{$json.query.id}}",
+              "type": "string"
+            },
+            {
+              "name": "auth",
+              "value": "={{$json.query.auth}}",
+              "type": "string"
+            },
+            {
+              "name": "staffName",
+              "value": "={{decodeURIComponent($json.query.staffName || \"Admin\")}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a5c418f-e579-43ed-8456-005938776e01",
+      "name": "Set ticket ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -832,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔐 Authorization check\nconst ticketId = $json.ticket_id || $json.id;\nconst auth = $json.auth;\nconst staffName = $json.staffName || 'Admin';\n\n// ✅ allow numeric PINs or specific staff emails\nconst AUTHORIZED = [\n  'redribbon2025',\n  '6969',\n  'staff1@saude.gov.br',\n  'staff2@saude.gov.br'\n];\n\nif (!ticketId) {\n  return [{ json: { error: true, message: 'Ticket ID ausente no QR Code.' } }];\n}\n\nif (!auth || !AUTHORIZED.includes(auth.trim())) {\n  return [{ json: { error: true, unauthorized: true, message: 'Acesso não autorizado.' } }];\n}\n\n// Authorized → continue workflow\nreturn [{\n  json: {\n    ticket_id: ticketId,\n    authorizedBy: auth.trim(),\n    staffName: staffName,\n    authorized: true\n  }\n}];"
+      },
+      "id": "6589e279-3ff6-4f94-9e11-59edb4af68e4",
+      "name": "Check Authorization",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.unauthorized}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "6d38d0c7-0dbd-4302-b783-dad1646fc51b",
+      "name": "Unauthorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": true, \"unauthorized\": true, \"message\": \"🚫 Acesso não autorizado\" } }}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "id": "2d5292cd-4e4c-4890-8cf0-125ffcf6faa5",
+      "name": "Responder Acesso Negado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "list",
+          "cachedResultName": "Atividades Dezembro Vermelho 2025",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inscricoes_DezembroVermelho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ticket_id",
+              "lookupValue": "={{$json.ticket_id}}"
+            }
+          ]
+        },
+        "options": {
+          "returnAllMatches": "returnFirstMatch"
+        }
+      },
+      "id": "644e03fa-03dc-4958-ae18-de517e2efb20",
+      "name": "Buscar Inscrição",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        720
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$items().length}}",
+              "operation": "larger"
+            }
+          ]
+        }
+      },
+      "id": "03014a94-f2af-4360-8ca1-a3e9c918e187",
+      "name": "Registro Encontrado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        144,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"error\": true, \"notFound\": true, \"message\": \"⚠️ Ingresso não encontrado\", \"ticket_id\": $node[\"Set ticket ID\"].json.ticket_id } }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "c467052d-003f-4982-b748-121abe2c96e7",
+      "name": "Responder Ingresso Não Encontrado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        352,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🧠 Deduplication Guard\nconst reg = $json;\nif (reg.checkin_timestamp && reg.checkin_timestamp.trim() !== '') {\n  return [{ json: { alreadyChecked: true, ...reg } }];\n}\nreturn [{ json: { alreadyChecked: false, ...reg } }];"
+      },
+      "id": "b0375c2f-add2-4209-9bd7-7b6b97822e76",
+      "name": "Check Already Checked-in?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.alreadyChecked}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "c38db6f2-a3e0-4cfd-948e-db85bf5882cd",
+      "name": "Já Realizou Check-in?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        576,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"alreadyChecked\": true, \"message\": \"⚠️ Participante já realizou check-in\", \"nome_completo\": $json.nome_completo, \"email\": $json.email, \"cpf\": $json.cpf, \"atividade_nome\": $json.atividade_nome, \"ticket_id\": $json.ticket_id, \"checkin_timestamp\": $json.checkin_timestamp, \"checked_by\": $json.checked_by } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4e6de69e-033f-4f44-8a2f-7c30196397b8",
+      "name": "Responder Já Check-in",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ Prepare new check-in update with UTC-3 timezone\nconst options = { timeZone: 'America/Sao_Paulo', hour12: false };\nconst now = new Date().toLocaleString('pt-BR', options);\nconst staffName = $node['Check Authorization'].json.staffName || 'Admin';\n\nreturn [\n  {\n    json: {\n      ticket_id: $json.ticket_id,\n      nome_completo: $json.nome_completo,\n      email: $json.email,\n      cpf: $json.cpf,\n      atividade_nome: $json.atividade_nome,\n      status: $json.status,\n      checkin_timestamp: now,\n      checked_by: staffName\n    }\n  }\n];"
+      },
+      "id": "2d3e58f1-b9dc-41a4-9d41-a087b8123f91",
+      "name": "Preparar Atualização",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "list",
+          "cachedResultName": "Atividades Dezembro Vermelho 2025",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inscricoes_DezembroVermelho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "checkin_timestamp": "={{$json.checkin_timestamp}}",
+            "checked_by": "={{$json.checked_by}}",
+            "ticket_id": "={{$json.ticket_id}}"
+          },
+          "matchingColumns": [
+            "ticket_id"
+          ],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ticket_id",
+              "displayName": "ticket_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nome_completo",
+              "displayName": "nome_completo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "cpf",
+              "displayName": "cpf",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "atividade_id",
+              "displayName": "atividade_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "atividade_nome",
+              "displayName": "atividade_nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "qr_code_url",
+              "displayName": "qr_code_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "checkin_timestamp",
+              "displayName": "checkin_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "checked_by",
+              "displayName": "checked_by",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "775be13d-3413-4e93-a73c-0e29f2b955d1",
+      "name": "Atualizar Check-in",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        1024,
+        864
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"checked_in\": true, \"message\": \"✅ Check-in confirmado\", \"nome_completo\": $json.nome_completo, \"email\": $json.email, \"cpf\": $json.cpf, \"atividade_nome\": $json.atividade_nome, \"ticket_id\": $json.ticket_id, \"status\": $json.status, \"checkin_timestamp\": $json.checkin_timestamp, \"checked_by\": $json.checked_by } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "8b17989d-778c-436a-80ac-69ac3caddf60",
+      "name": "Responder Check-in OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        864
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Check-in DV 2025": {
+      "main": [
+        [
+          {
+            "node": "Set ticket ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set ticket ID": {
+      "main": [
+        [
+          {
+            "node": "Check Authorization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Authorization": {
+      "main": [
+        [
+          {
+            "node": "Unauthorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unauthorized?": {
+      "main": [
+        [
+          {
+            "node": "Responder Acesso Negado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Inscrição",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Inscrição": {
+      "main": [
+        [
+          {
+            "node": "Registro Encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registro Encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Check Already Checked-in?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Ingresso Não Encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Already Checked-in?": {
+      "main": [
+        [
+          {
+            "node": "Já Realizou Check-in?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Já Realizou Check-in?": {
+      "main": [
+        [
+          {
+            "node": "Responder Já Check-in",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar Atualização",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Atualização": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Check-in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Check-in": {
+      "main": [
+        [
+          {
+            "node": "Responder Check-in OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9cde4c78-ab82-4c91-b2bd-8133843915f6",
+  "meta": {
+    "instanceId": "76a572fa0d7eb4ee792610107ff82422b94c615a9137e8ea064722e606b4ca88"
+  },
+  "id": "RuGxE9KiQ6IRusYh",
+  "tags": [
+    {
+      "updatedAt": "2025-11-10T18:36:29.537Z",
+      "createdAt": "2025-11-10T18:36:29.537Z",
+      "id": "5VXHzH1QM4jo03AM",
+      "name": "dezembro vermelho"
+    },
+    {
+      "updatedAt": "2025-11-11T16:01:53.710Z",
+      "createdAt": "2025-11-11T16:01:53.710Z",
+      "id": "JPpAPO8JjlPeYAxq",
+      "name": "check in"
+    },
+    {
+      "updatedAt": "2025-11-11T12:53:14.920Z",
+      "createdAt": "2025-11-11T12:53:14.920Z",
+      "id": "b9GH293cbCy5d2dY",
+      "name": "2.0"
+    }
+  ]
+}
