@@ -244,6 +244,17 @@
           // Log full response for debugging
           console.log("Full response object:", JSON.stringify(result, null, 2));
 
+          // Check for "Workflow was started" response (old workflow active)
+          if (result.message === "Workflow was started") {
+            statusEl.textContent = "⚠️ Workflow antigo ativo! Ative v2.2 no N8N.";
+            statusEl.style.color = "orange";
+            beepError.play().catch((e) => console.log("Sound error:", e));
+            console.error("❌ OLD WORKFLOW ACTIVE - Deploy v2.2!");
+            console.error("Response:", result);
+            setTimeout(() => restartCamera(), 3000);
+            return;
+          }
+
           if (result.alreadyChecked === true) {
             statusEl.textContent = result.message || "⚠️ Já realizou check-in.";
             statusEl.style.color = "#d49b00";
@@ -268,7 +279,7 @@
             console.error("Formato de resposta desconhecido:", result);
             console.error("Keys in response:", Object.keys(result));
             console.error("Values:", Object.values(result));
-            statusEl.textContent = "❌ Resposta inesperada. Veja console (F12).";
+            statusEl.textContent = "❌ Resposta inesperada. Ative v2.2 no N8N.";
             statusEl.style.color = "red";
             beepError.play().catch((e) => console.log("Sound error:", e));
             setTimeout(() => restartCamera(), 2000);
