@@ -35,12 +35,15 @@ temp/
 # Backups
 *.bak
 backup/
+activities.backup.json
 
 # Exclude specific directories and files
 Archive 4.zip
 n8n backups/
 n8n broken/
 scanner_old/
+scanner_live/scanner copy.html
+scanner_live/Archive.zip
 v1.0/
 
 # Test files
