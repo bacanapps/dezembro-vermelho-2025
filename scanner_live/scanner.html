@@ -20,6 +20,75 @@
       transition: background 0.3s;
     }
     .logout-btn:hover { background: #800000; }
+
+    /* Modal for duplicate check-in alert */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      color: #d49b00;
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .modal-body {
+      background: #fffbe6;
+      border: 2px solid #d49b00;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .modal-body p {
+      margin: 8px 0;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .modal-body strong {
+      color: #333;
+    }
+    .modal-footer {
+      text-align: center;
+    }
+    .modal-close-btn {
+      background: #d49b00;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .modal-close-btn:hover {
+      background: #b88400;
+    }
   </style>
 </head>
 
@@ -47,6 +116,22 @@
     </div>
   </div>
 
+  <!-- Modal for duplicate check-in alert -->
+  <div id="duplicateModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span style="font-size: 32px;">⚠️</span>
+        <h2>Check-in Já Realizado</h2>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Dynamic content will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button id="modalCloseBtn" class="modal-close-btn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -63,6 +148,11 @@
       const beepError = new Audio("assets/error.mp3");
       [beepSuccess, beepError].forEach(audio => audio.load());
 
+      // Modal elements
+      const duplicateModal = document.getElementById("duplicateModal");
+      const modalBody = document.getElementById("modalBody");
+      const modalCloseBtn = document.getElementById("modalCloseBtn");
+
       // Display logged-in staff name
       userInfo.textContent = staffName
         ? `Olá, ${staffName}!`
@@ -75,13 +165,40 @@
         window.location.href = "login.html";
       });
 
+      // Modal close handler
+      modalCloseBtn.addEventListener("click", () => {
+        duplicateModal.classList.remove("active");
+      });
+
+      // Close modal on overlay click
+      duplicateModal.addEventListener("click", (e) => {
+        if (e.target === duplicateModal) {
+          duplicateModal.classList.remove("active");
+        }
+      });
+
+      // Function to show duplicate check-in modal
+      const showDuplicateModal = (data) => {
+        const html = `
+          <p><strong>Participante:</strong> ${data.nome_completo || 'N/A'}</p>
+          <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+          <p><strong>Atividade:</strong> ${data.atividade_nome || 'N/A'}</p>
+          <p><strong>Ticket ID:</strong> ${data.ticket_id || 'N/A'}</p>
+          <p><strong>Check-in realizado em:</strong> ${data.checkin_timestamp || 'N/A'}</p>
+          <p><strong>Verificado por:</strong> ${data.checked_by || 'N/A'}</p>
+        `;
+        modalBody.innerHTML = html;
+        duplicateModal.classList.add("active");
+        beepError.play().catch(()=>{});
+      };
+
       // Function to send the check-in request
       const sendCheckin = async (ticketId) => {
         try {
           statusEl.textContent = "Verificando ingresso...";
           statusEl.style.color = "#000";
           const resp = await fetch(
-            `${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}`
+            `${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}&staffName=${encodeURIComponent(staffName)}`
           );
           const result = await resp.json();
           console.log("Resposta:", result);
@@ -89,7 +206,7 @@
           if (result.alreadyChecked) {
             statusEl.textContent = result.message || "⚠️ Já realizou check-in.";
             statusEl.style.color = "#d49b00";
-            beepError.play().catch(()=>{});
+            showDuplicateModal(result);
           } else if (result.success || result.checked_in) {
             statusEl.textContent = "✅ Check-in registrado com sucesso!";
             statusEl.style.color = "green";
