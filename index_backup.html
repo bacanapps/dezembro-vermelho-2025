@@ -358,11 +358,11 @@
         function renderDayButtons(activities) {
             const dates = getUniqueDates(activities);
             const container = document.getElementById("dayButtons");
-            container.innerHTML = '';
+            container.innerHTML = ''; // Clear existing buttons
 
             // Add "All Days" button
             const allBtn = document.createElement("button");
-            allBtn.className = `filter-btn${currentDayFilter === "all" ? " active" : ""}`;
+            allBtn.className = "filter-btn" + (currentDayFilter === "all" ? " active" : "");
             allBtn.textContent = "Todos os Dias";
             allBtn.onclick = () => setDayFilter("all");
             container.appendChild(allBtn);
@@ -370,8 +370,9 @@
             // Add date buttons
             dates.forEach(date => {
                 const btn = document.createElement("button");
-                btn.className = `filter-btn${currentDayFilter === date ? " active" : ""}`;
+                btn.className = "filter-btn" + (currentDayFilter === date ? " active" : "");
                 btn.textContent = formatDateLabel(date);
+                btn.dataset.date = date; // Store original date for filtering
                 btn.onclick = () => setDayFilter(date);
                 container.appendChild(btn);
             });
@@ -380,11 +381,11 @@
         function renderTypeButtons() {
             const types = getTypesForCurrentDay();
             const container = document.getElementById("typeButtons");
-            container.innerHTML = '';
+            container.innerHTML = ''; // Clear existing buttons
 
             // Add "All Types" button
             const allBtn = document.createElement("button");
-            allBtn.className = `filter-btn${currentTypeFilter === "all" ? " active" : ""}`;
+            allBtn.className = "filter-btn" + (currentTypeFilter === "all" ? " active" : "");
             allBtn.textContent = "Todos os Tipos";
             allBtn.onclick = () => setTypeFilter("all");
             container.appendChild(allBtn);
@@ -392,7 +393,7 @@
             // Add type buttons
             types.forEach(type => {
                 const btn = document.createElement("button");
-                btn.className = `filter-btn${currentTypeFilter === type ? " active" : ""}`;
+                btn.className = "filter-btn" + (currentTypeFilter === type ? " active" : "");
                 btn.textContent = type;
                 btn.onclick = () => setTypeFilter(type);
                 container.appendChild(btn);
@@ -456,20 +457,26 @@
         }
 
         function setDayFilter(dateFilter) {
-            if (currentDayFilter === dateFilter) return; // No change needed
-
             currentDayFilter = dateFilter;
-            currentTypeFilter = "all";
+            currentTypeFilter = "all"; // Reset type filter when day changes
+
+            // Re-render type buttons based on new day
             renderTypeButtons();
+
+            // Re-render day buttons to update active state
             renderDayButtons(allActivities);
+
+            // Re-render activities
             renderActivities(allActivities);
         }
 
         function setTypeFilter(typeFilter) {
-            if (currentTypeFilter === typeFilter) return; // No change needed
-
             currentTypeFilter = typeFilter;
+
+            // Re-render type buttons to update active state
             renderTypeButtons();
+
+            // Re-render activities
             renderActivities(allActivities);
         }
 

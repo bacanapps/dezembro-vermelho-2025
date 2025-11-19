@@ -54,3 +54,7 @@ test-*.js
 *.docx
 *.pdf
 *.zip
+
+# Internal planning documents
+event_registration_improvements.md
+event_registration_sop.md
