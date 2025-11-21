@@ -1,18 +1,18 @@
 [
   {
     "id": 1,
-    "data": "01/12/2025",
+    "data": "1/12/2025",
     "horario": "15:00-16:00",
     "nome_atividade": "Lançamento da campanha de aids e anúncio de entregas",
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 1,
-    "vagas_disponiveis": 99
+    "vagas_preenchidas": 0,
+    "vagas_disponiveis": 100
   },
   {
     "id": 2,
-    "data": "01/12/2025",
+    "data": "1/12/2025",
     "horario": "16:00-19:30",
     "nome_atividade": "Abertura da Exposição \"40 anos da resposta brasileira à aids\"",
     "tipo": "Exposição",
@@ -23,7 +23,7 @@
   },
   {
     "id": 3,
-    "data": "01/12/2025",
+    "data": "1/12/2025",
     "horario": "20:00-21:00",
     "nome_atividade": "Pocket Show - A História Cantada da Aids",
     "tipo": "Show",
@@ -34,18 +34,18 @@
   },
   {
     "id": 4,
-    "data": "02/12/2025",
+    "data": "2/12/2025",
     "horario": "09:00-10:30",
     "nome_atividade": "Painel Integrado de Monitoramento do Cuidado das Pessoas Vivendo com HIV ou aids (PIMC)",
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 5,
-    "data": "02/12/2025",
+    "data": "2/12/2025",
     "horario": "10:30-12:00",
     "nome_atividade": "Do teste laboratorial ao autoteste: 40 anos de avanços no diagnóstico da infecção pelo HIV",
     "tipo": "Palestra",
@@ -56,7 +56,7 @@
   },
   {
     "id": 6,
-    "data": "03/12/2025",
+    "data": "3/12/2025",
     "horario": "10:30-11:30",
     "nome_atividade": "Talk show - Prevenir e cuidar: TB-HIV em pauta",
     "tipo": "Talk Show",
@@ -67,7 +67,7 @@
   },
   {
     "id": 7,
-    "data": "03/12/2025",
+    "data": "3/12/2025",
     "horario": "12:00-14:00",
     "nome_atividade": "Projeção de fotografias - 40 anos da aids",
     "tipo": "Exibição",
@@ -78,18 +78,18 @@
   },
   {
     "id": 8,
-    "data": "03/12/2025",
+    "data": "3/12/2025",
     "horario": "14:00-15:30",
     "nome_atividade": "Do AZT ao comprimido único: da descoberta do HIV ao conceito indetectável igual a intransmissível",
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 9,
-    "data": "03/12/2025",
+    "data": "3/12/2025",
     "horario": "15:30-17:30",
     "nome_atividade": "Roda de conversa - Aids HIV e arte",
     "tipo": "Roda de Conversa",
@@ -100,18 +100,18 @@
   },
   {
     "id": 10,
-    "data": "04/12/2025",
+    "data": "4/12/2025",
     "horario": "09:00-12:00",
     "nome_atividade": "Vozes lutas e conquistas: a sociedade civil na resposta à aids",
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 11,
-    "data": "04/12/2025",
+    "data": "4/12/2025",
     "horario": "12:00-14:00",
     "nome_atividade": "Projeção de fotografias - 40 anos da aids",
     "tipo": "Exibição",
@@ -122,18 +122,18 @@
   },
   {
     "id": 12,
-    "data": "04/12/2025",
+    "data": "4/12/2025",
     "horario": "14:00-15:30",
     "nome_atividade": "Uma geração livre do HIV: uma vitória brasileira",
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 13,
-    "data": "04/12/2025",
+    "data": "4/12/2025",
     "horario": "14:00-18:00",
     "nome_atividade": "Oficina Comunicação em movimento: 40 anos de campanhas reflexões e caminhos para o futuro",
     "tipo": "Oficina",
@@ -144,7 +144,7 @@
   },
   {
     "id": 14,
-    "data": "04/12/2025",
+    "data": "4/12/2025",
     "horario": "16:00-17:30",
     "nome_atividade": "Talk show - Tuberculose infecções oportunistas e aids: múltiplos desafios",
     "tipo": "Talk Show",
@@ -155,7 +155,7 @@
   },
   {
     "id": 15,
-    "data": "05/12/2025",
+    "data": "5/12/2025",
     "horario": "10:30-12:00",
     "nome_atividade": "Iniquidades na resposta ao HIV: um olhar a partir dos determinantes sociais",
     "tipo": "Mesa",
@@ -166,7 +166,7 @@
   },
   {
     "id": 16,
-    "data": "05/12/2025",
+    "data": "5/12/2025",
     "horario": "12:00-14:00",
     "nome_atividade": "Projeção de fotografias - 40 anos da aids",
     "tipo": "Exibição",
@@ -177,7 +177,7 @@
   },
   {
     "id": 17,
-    "data": "05/12/2025",
+    "data": "5/12/2025",
     "horario": "14:00-15:30",
     "nome_atividade": "Talk show - Da camisa de vênus à PrEP: 40 anos de inovação na prevenção do HIV",
     "tipo": "Talk Show",
@@ -188,7 +188,7 @@
   },
   {
     "id": 18,
-    "data": "05/12/2025",
+    "data": "5/12/2025",
     "horario": "15:00-17:30",
     "nome_atividade": "O Brasil e o SUS como referências internacionais na resposta à aids",
     "tipo": "Mesa",
@@ -199,18 +199,18 @@
   },
   {
     "id": 19,
-    "data": "06/12/2025",
+    "data": "6/12/2025",
     "horario": "09:00-12:00",
     "nome_atividade": "Cinema Mostra Aids - Grupo Pela Vidda-SP",
     "tipo": "Exibição",
     "local": "Túnel Sesilab",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 20,
-    "data": "06/12/2025",
+    "data": "6/12/2025",
     "horario": "09:00-18:00",
     "nome_atividade": "Oficina de bordado - Histórias da Aids",
     "tipo": "Oficina",
@@ -221,18 +221,18 @@
   },
   {
     "id": 21,
-    "data": "06/12/2025",
-    "horario": "14:00-16:30",
-    "nome_atividade": "Roda de Conversa: influenciadores promotores de saúde",
+    "data": "7/12/2025",
+    "horario": "10:00-12:00",
+    "nome_atividade": "Roda de conversa: Influência, vivência e comunicação sobre HIV e aids nas redes digitais\nConvidados(as): Ricardo Kores, Sabrina Luz e Djair Gomes",
     "tipo": "Roda de Conversa",
     "local": "Espaço Maker",
     "capacidade": 50,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 50
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 49
   },
   {
     "id": 22,
-    "data": "06/12/2025",
+    "data": "6/12/2025",
     "horario": "17:00-19:00",
     "nome_atividade": "Peça teatral - O Rapaz da rabeca e a moça Rebeca",
     "tipo": "Teatro",
@@ -243,18 +243,18 @@
   },
   {
     "id": 23,
-    "data": "06/12/2025",
+    "data": "6/12/2025",
     "horario": "19:00-21:00",
     "nome_atividade": "Cinema Mostra Aids - Grupo Pela Vidda-SP",
     "tipo": "Exibição",
     "local": "Túnel Sesilab",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 24,
-    "data": "07/12/2025",
+    "data": "7/12/2025",
     "horario": "09:00-12:00",
     "nome_atividade": "Oficina de lambe-lambe com Coletivos transverso e travesT",
     "tipo": "Oficina",
@@ -265,7 +265,7 @@
   },
   {
     "id": 25,
-    "data": "07/12/2025",
+    "data": "7/12/2025",
     "horario": "12:00-14:00",
     "nome_atividade": "Projeção de fotografias - 40 anos da aids",
     "tipo": "Exibição",
@@ -276,7 +276,7 @@
   },
   {
     "id": 26,
-    "data": "07/12/2025",
+    "data": "7/12/2025",
     "horario": "12:00-16:00",
     "nome_atividade": "Cinema Mostra Aids - Grupo Pela Vidda-SP",
     "tipo": "Exibição",
@@ -287,7 +287,7 @@
   },
   {
     "id": 27,
-    "data": "07/12/2025",
+    "data": "7/12/2025",
     "horario": "15:00-18:00",
     "nome_atividade": "Oficina Bazuca com Coletivo Transverso",
     "tipo": "Oficina",
@@ -298,7 +298,7 @@
   },
   {
     "id": 28,
-    "data": "07/12/2025",
+    "data": "7/12/2025",
     "horario": "17:00-19:00",
     "nome_atividade": "Peça teatral - O Rapaz da rabeca e a moça Rebeca",
     "tipo": "Teatro",
@@ -309,7 +309,7 @@
   },
   {
     "id": 29,
-    "data": "07/12/2025",
+    "data": "7/12/2025",
     "horario": "19:00-21:00",
     "nome_atividade": "Cinema Mostra Aids - Grupo Pela Vidda-SP",
     "tipo": "Exibição",
@@ -331,13 +331,13 @@
   },
   {
     "id": 31,
-    "data": "06/12/2025",
+    "data": "6/12/2025",
     "horario": "14:00-16:30",
     "nome_atividade": "HIV na literatura e nas artes - Convidados(as): Marcelo Henrique Silva e Bruna Linzmayer",
     "tipo": "Roda de Conversa",
     "local": "Túnel Sesilab",
-    "capacidade": 2,
+    "capacidade": 100,
     "vagas_preenchidas": 1,
-    "vagas_disponiveis": 1
+    "vagas_disponiveis": 99
   }
 ]
