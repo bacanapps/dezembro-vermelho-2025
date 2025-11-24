@@ -51,8 +51,8 @@
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 3,
-    "vagas_disponiveis": 97
+    "vagas_preenchidas": 4,
+    "vagas_disponiveis": 96
   },
   {
     "id": 6,
@@ -84,8 +84,8 @@
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 5,
-    "vagas_disponiveis": 95
+    "vagas_preenchidas": 7,
+    "vagas_disponiveis": 93
   },
   {
     "id": 9,
@@ -106,8 +106,8 @@
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 4,
-    "vagas_disponiveis": 96
+    "vagas_preenchidas": 5,
+    "vagas_disponiveis": 95
   },
   {
     "id": 11,
@@ -139,8 +139,8 @@
     "tipo": "Oficina",
     "local": "Fiocruz/Brasília",
     "capacidade": 50,
-    "vagas_preenchidas": 1,
-    "vagas_disponiveis": 49
+    "vagas_preenchidas": 3,
+    "vagas_disponiveis": 47
   },
   {
     "id": 14,
@@ -183,8 +183,8 @@
     "tipo": "Talk Show",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 2,
-    "vagas_disponiveis": 98
+    "vagas_preenchidas": 4,
+    "vagas_disponiveis": 96
   },
   {
     "id": 18,
@@ -194,8 +194,8 @@
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 2,
-    "vagas_disponiveis": 98
+    "vagas_preenchidas": 4,
+    "vagas_disponiveis": 96
   },
   {
     "id": 19,
@@ -238,8 +238,8 @@
     "tipo": "Teatro",
     "local": "Túnel Sesilab",
     "capacidade": 100,
-    "vagas_preenchidas": 0,
-    "vagas_disponiveis": 100
+    "vagas_preenchidas": 1,
+    "vagas_disponiveis": 99
   },
   {
     "id": 23,
