@@ -18,8 +18,8 @@
     "tipo": "Exposição",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 1,
-    "vagas_disponiveis": 99
+    "vagas_preenchidas": 2,
+    "vagas_disponiveis": 98
   },
   {
     "id": 3,
@@ -62,8 +62,8 @@
     "tipo": "Talk Show",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 2,
-    "vagas_disponiveis": 98
+    "vagas_preenchidas": 3,
+    "vagas_disponiveis": 97
   },
   {
     "id": 7,
@@ -84,8 +84,8 @@
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 4,
-    "vagas_disponiveis": 96
+    "vagas_preenchidas": 5,
+    "vagas_disponiveis": 95
   },
   {
     "id": 9,
@@ -128,8 +128,8 @@
     "tipo": "Palestra",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 2,
-    "vagas_disponiveis": 98
+    "vagas_preenchidas": 3,
+    "vagas_disponiveis": 97
   },
   {
     "id": 13,
@@ -161,8 +161,8 @@
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 4,
-    "vagas_disponiveis": 96
+    "vagas_preenchidas": 5,
+    "vagas_disponiveis": 95
   },
   {
     "id": 16,
@@ -337,7 +337,7 @@
     "tipo": "Roda de Conversa",
     "local": "Túnel Sesilab",
     "capacidade": 100,
-    "vagas_preenchidas": 1,
-    "vagas_disponiveis": 99
+    "vagas_preenchidas": 2,
+    "vagas_disponiveis": 98
   }
 ]
