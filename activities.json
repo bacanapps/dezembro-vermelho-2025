@@ -183,8 +183,8 @@
     "tipo": "Talk Show",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 7,
-    "vagas_disponiveis": 93
+    "vagas_preenchidas": 8,
+    "vagas_disponiveis": 92
   },
   {
     "id": 18,
@@ -194,8 +194,8 @@
     "tipo": "Mesa",
     "local": "SESILAB",
     "capacidade": 100,
-    "vagas_preenchidas": 7,
-    "vagas_disponiveis": 93
+    "vagas_preenchidas": 8,
+    "vagas_disponiveis": 92
   },
   {
     "id": 19,
