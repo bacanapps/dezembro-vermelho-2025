@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dezembro Vermelho 2025 - Gerar Relatorio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #c41e3a;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+
+        h1 {
+            color: #c41e3a;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #666;
+            font-size: 16px;
+            font-weight: normal;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #c41e3a;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
+        .btn {
+            background: #c41e3a;
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: #a01830;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(196, 30, 58, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .status.loading {
+            display: block;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+
+        .status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #28a745;
+        }
+
+        .status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #dc3545;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #856404;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+        </div>
+
+        <h1>Dezembro Vermelho 2025</h1>
+        <h2>40 Anos da Resposta Brasileira a AIDS</h2>
+
+        <div class="info-box">
+            <strong>O que este botao faz:</strong><br>
+            Gera e envia por email o relatorio diario com todas as listas de presenca das 31 atividades do evento.
+        </div>
+
+        <button class="btn" id="triggerBtn" onclick="triggerReport()">
+            Gerar Relatorio Diario
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <div class="footer">
+            Sistema de Inscricoes - Dezembro Vermelho 2025
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANTE: Atualize esta URL com o webhook do seu n8n
+        const WEBHOOK_URL = 'https://n8n.bebot.co/webhook/relatorio-dv-2025';
+
+        async function triggerReport() {
+            const btn = document.getElementById('triggerBtn');
+            const status = document.getElementById('status');
+
+            // Disable button
+            btn.disabled = true;
+            btn.textContent = 'Gerando...';
+
+            // Show loading
+            status.className = 'status loading';
+            status.innerHTML = '<span class="spinner"></span> Gerando relatorio e enviando emails... Aguarde.';
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        triggered_by: 'admin_button',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    status.className = 'status success';
+                    status.innerHTML = '<strong>Sucesso!</strong><br>' + result;
+                } else {
+                    throw new Error('Erro na resposta do servidor: ' + response.status);
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = '<strong>Erro:</strong> ' + error.message + '<br>Tente novamente ou contate o suporte.';
+            }
+
+            // Re-enable button
+            btn.disabled = false;
+            btn.textContent = 'Gerar Relatorio Diario';
+        }
+    </script>
+</body>
+</html>
