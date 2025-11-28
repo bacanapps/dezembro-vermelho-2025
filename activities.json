@@ -249,8 +249,8 @@
     "tipo": "Teatro",
     "local": "Túnel Sesilab",
     "capacidade": 100,
-    "vagas_preenchidas": 4,
-    "vagas_disponiveis": 96
+    "vagas_preenchidas": 5,
+    "vagas_disponiveis": 95
   },
   {
     "id": 29,
@@ -262,17 +262,6 @@
     "capacidade": 100,
     "vagas_preenchidas": 1,
     "vagas_disponiveis": 99
-  },
-  {
-    "id": 30,
-    "data": "15/12/2025",
-    "horario": "14:00-17:00",
-    "nome_atividade": "Visita do Comitê Executivo do Unaids",
-    "tipo": "Reunião",
-    "local": "A definir",
-    "capacidade": 100,
-    "vagas_preenchidas": 2,
-    "vagas_disponiveis": 98
   },
   {
     "id": 31,
