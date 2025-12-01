@@ -1,0 +1,33 @@
+[Unit]
+Description=SMTP Relay for Dezembro Vermelho 2025
+Documentation=https://github.com/your-org/dezembro-vermelho-smtp-relay
+After=network.target openvpn@government.service
+Wants=openvpn@government.service
+Requires=network.target
+
+[Service]
+Type=simple
+User=smtp-relay
+Group=smtp-relay
+WorkingDirectory=/opt/smtp-relay
+ExecStart=/usr/bin/node /opt/smtp-relay/server.js
+Restart=always
+RestartSec=10
+
+# Environment variables
+EnvironmentFile=/opt/smtp-relay/.env
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/smtp-relay
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=smtp-relay
+
+[Install]
+WantedBy=multi-user.target

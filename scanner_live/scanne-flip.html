@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scanner QR — Dezembro Vermelho</title>
+  <link rel="stylesheet" href="assets/style.css" />
+
+  <style>
+    .flip-btn {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 8px;
+      margin-top: 14px;
+      cursor: pointer;
+    }
+    .flip-btn:hover {
+      background: #333;
+    }
+
+    .logout-btn {
+      background: #b50000;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrapper">
+    <div class="card">
+
+      <div class="header">
+        <img src="assets/logo.png" class="header-logo" />
+        <h1>Scanner de Check-in</h1>
+        <p id="userInfo"></p>
+      </div>
+
+      <div class="scanner-container">
+        <div id="reader" class="scanner-box"></div>
+        <div id="status" class="scanner-status">Inicializando câmera...</div>
+
+        <!-- NEW: BUTTON TO FLIP CAMERA -->
+        <button id="flipCameraBtn" class="flip-btn">🔄 Inverter Câmera</button>
+      </div>
+
+      <div class="manual-entry">
+        <h3>Inserir manualmente</h3>
+        <input id="manualTicket" placeholder="Digite o código" />
+        <button id="manualSubmit" class="primary">Enviar</button>
+      </div>
+
+      <button id="logoutBtn" class="logout-btn">Sair</button>
+
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", async () => {
+
+    // -------------------------
+    // DISPLAY STAFF NAME
+    // -------------------------
+    const url = new URLSearchParams(location.search);
+    const staffName = decodeURIComponent(url.get("staffName") || "");
+    const auth = url.get("auth");
+    const webhookUrl = "https://n8n.bebot.co/webhook/checkin-dv-2025";
+
+    document.getElementById("userInfo").innerText =
+      staffName ? `Olá, ${staffName}!` : "Usuário não identificado.";
+
+    // -------------------------
+    // STRICT REAR CAMERA LOGIC
+    // -------------------------
+    async function forceRearCameraId() {
+      // Attempt 1: facingMode exact
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        });
+        const id = s.getVideoTracks()[0].getSettings().deviceId;
+        s.getTracks().forEach(t => t.stop());
+        if (id) return id;
+      } catch (e) {}
+
+      // Attempt 2: soft environment
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+        const id = s.getVideoTracks()[0].getSettings().deviceId;
+        s.getTracks().forEach(t => t.stop());
+        if (id) return id;
+      } catch (e) {}
+
+      // Attempt 3: enumerate → rear is last on iOS
+      try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        const vids = devs.filter(d => d.kind === "videoinput");
+        if (vids.length === 0) return null;
+        return vids[vids.length - 1].deviceId;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // -------------------------
+    // SETUP QR SCANNER
+    // -------------------------
+    const html5QrCode = new Html5Qrcode("reader");
+    let videoInputs = [];
+    let currentCameraIndex = 0;
+    let cameraId = null;
+    let isScanning = false;
+
+    const qrConfig = { fps: 10, qrbox: 250 };
+
+    async function startCamera(id) {
+      try {
+        await html5QrCode.stop().catch(()=>{});
+        await html5QrCode.start(id, qrConfig, onScanSuccess);
+        cameraId = id;
+        document.getElementById("status").innerText = "Câmera ativa.";
+      } catch (e) {
+        document.getElementById("status").innerText =
+          "Não foi possível iniciar esta câmera.";
+      }
+    }
+
+    function onScanSuccess(decoded) {
+      if (isScanning) return;
+      isScanning = true;
+      html5QrCode.stop().catch(()=>{});
+      document.getElementById("status").innerText = "Processando...";
+
+      const clean = decoded.split("id=")[1] || decoded.trim();
+      sendCheckin(clean);
+    }
+
+    // -------------------------
+    // FLIP CAMERA BUTTON
+    // -------------------------
+    document.getElementById("flipCameraBtn").addEventListener("click", async () => {
+      if (videoInputs.length <= 1) {
+        alert("Nenhuma outra câmera disponível.");
+        return;
+      }
+
+      currentCameraIndex = (currentCameraIndex + 1) % videoInputs.length;
+      const nextId = videoInputs[currentCameraIndex].deviceId;
+      await startCamera(nextId);
+    });
+
+    // -------------------------
+    // INITIALIZE STRICT REAR CAMERA
+    // -------------------------
+    document.getElementById("status").innerText = "Selecionando câmera traseira...";
+
+    const rearId = await forceRearCameraId();
+
+    if (!rearId) {
+      document.getElementById("status").innerText =
+        "Não foi possível acessar a câmera traseira.";
+      return;
+    }
+
+    // Load cameras list for flip-button
+    const allDevices = await navigator.mediaDevices.enumerateDevices();
+    videoInputs = allDevices.filter(d => d.kind === "videoinput");
+
+    // Start from rear by setting index correctly
+    currentCameraIndex = videoInputs.findIndex(d => d.deviceId === rearId);
+    if (currentCameraIndex < 0) currentCameraIndex = 0;
+
+    await startCamera(rearId);
+
+    // -------------------------
+    // CHECK-IN WORKFLOW
+    // -------------------------
+    async function sendCheckin(ticketId) {
+      try {
+        const res = await fetch(`${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}&staffName=${encodeURIComponent(staffName)}`);
+        const data = await res.json();
+
+        if (data.alreadyChecked) {
+          alert("Check-in já realizado.");
+          isScanning = false;
+          startCamera(cameraId);
+          return;
+        }
+
+        if (data.success || data.checked_in) {
+          alert("Check-in confirmado!");
+          isScanning = false;
+          startCamera(cameraId);
+          return;
+        }
+
+        alert("Erro ao validar ingresso.");
+        isScanning = false;
+        startCamera(cameraId);
+
+      } catch (e) {
+        alert("Erro de conexão.");
+        isScanning = false;
+        startCamera(cameraId);
+      }
+    }
+
+    // -------------------------
+    // LOGOUT
+    // -------------------------
+    document.getElementById("logoutBtn").onclick = () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      location.href = "login.html";
+    };
+
+    // Manual entry
+    document.getElementById("manualSubmit").onclick = async () => {
+      const v = document.getElementById("manualTicket").value.trim();
+      if (!v) return alert("Digite um código válido.");
+      await sendCheckin(v);
+    };
+
+  });
+  </script>
+</body>
+</html>

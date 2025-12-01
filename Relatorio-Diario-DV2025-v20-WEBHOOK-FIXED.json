@@ -1,0 +1,546 @@
+{
+  "name": "Relatorio Diario - Dezembro Vermelho 2025 v20 (Webhook Fixed)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "3a651fb3-44a5-45be-af0d-48d35d10084c",
+      "name": "Agendamento Diario",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1328,
+        -96
+      ],
+      "notes": "Executa diariamente as 6:00 AM Brasilia"
+    },
+    {
+      "parameters": {},
+      "id": "243f21fb-d662-4586-a876-3c9de7acf674",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        128
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const CONFIG = {\n  recipients: 'colin@cpantin.com, colin.pantin@aids.gov.br, leonardo.mitsuru@aids.gov.br, lucio@aids.gov.br, eduardo.santos@aids.gov.br, thais.silva@aids.gov.br, cristina@aids.gov.br, adria.albarado@aids.gov.br',\n  includeEmptyActivities: true,\n  driveFolderId: '1TElWHGnKf5za9zHU1KytAWpjgZEqxkhc',\n  timezone: 'America/Sao_Paulo'\n};\n\nreturn { json: CONFIG };"
+      },
+      "id": "340d68d4-1351-41ce-8020-14e7ab10ee17",
+      "name": "Configuracoes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        128
+      ],
+      "notes": "Configuracoes do workflow"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inscricoes_DezembroVermelho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "810cdfb4-d013-4da7-a066-5011a9a1ce8b",
+      "name": "Buscar Inscricoes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2028156453,
+          "mode": "list",
+          "cachedResultName": "Atividades_DezembroVermelho",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XYJ4S_shpoQ5o7Psth-h4p-XZI48Kypy6a21k2ayYJ8/edit#gid=2028156453"
+        },
+        "options": {}
+      },
+      "id": "cdabc85b-5fd6-4292-bfba-c9ee0b362adb",
+      "name": "Buscar Atividades",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WSZ795WWPpb0wrPI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn items.map(item => ({\n  json: {\n    ...item.json,\n    _dataType: 'inscricao'\n  }\n}));"
+      },
+      "id": "78e2d9f8-8264-46d4-83df-9ae7008ea768",
+      "name": "Marcar Inscricoes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn items.map(item => ({\n  json: {\n    ...item.json,\n    _dataType: 'atividade'\n  }\n}));"
+      },
+      "id": "b67f1f04-e390-4ca9-b4b9-f62c89a521bb",
+      "name": "Marcar Atividades",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        240
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "3e801884-4355-466b-8c96-6902ca0b0607",
+      "name": "Combinar Dados",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nconst config = $('Configuracoes').first().json;\n\nconst now = new Date();\nconst brasiliaOffset = -3 * 60;\nconst utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);\nconst brasiliaTime = new Date(utcTime + (brasiliaOffset * 60000));\nconst day = String(brasiliaTime.getDate()).padStart(2, '0');\nconst month = String(brasiliaTime.getMonth() + 1).padStart(2, '0');\nconst year = brasiliaTime.getFullYear();\nconst hours = String(brasiliaTime.getHours()).padStart(2, '0');\nconst minutes = String(brasiliaTime.getMinutes()).padStart(2, '0');\nconst dateTimeStr = day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;\n\nfunction formatToBrasiliaShort(timestamp) {\n  if (!timestamp) return '-';\n  const ts = new Date(timestamp);\n  const tsUtc = ts.getTime() + (ts.getTimezoneOffset() * 60000);\n  const tsBrasilia = new Date(tsUtc + (brasiliaOffset * 60000));\n  const tsDay = String(tsBrasilia.getDate()).padStart(2, '0');\n  const tsMonth = String(tsBrasilia.getMonth() + 1).padStart(2, '0');\n  const tsHours = String(tsBrasilia.getHours()).padStart(2, '0');\n  const tsMinutes = String(tsBrasilia.getMinutes()).padStart(2, '0');\n  return tsDay + '/' + tsMonth + ' ' + tsHours + ':' + tsMinutes;\n}\n\nfunction toTitleCase(str) {\n  if (!str) return '-';\n  const smallWords = ['da', 'de', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os', 'em', 'na', 'no', 'nas', 'nos', 'por', 'para', 'com'];\n  return str.toLowerCase().split(' ').map((word, index) => {\n    if (index === 0 || !smallWords.includes(word)) {\n      return word.charAt(0).toUpperCase() + word.slice(1);\n    }\n    return word;\n  }).join(' ');\n}\n\nconst inscricoes = [];\nconst atividades = [];\n\nfor (const item of allItems) {\n  if (item.json._dataType === 'inscricao') {\n    inscricoes.push(item.json);\n  } else if (item.json._dataType === 'atividade') {\n    atividades.push(item.json);\n  }\n}\n\nconst groupedByActivity = {};\nfor (const inscricao of inscricoes) {\n  const atividadeId = String(inscricao.atividade_id);\n  if (!groupedByActivity[atividadeId]) {\n    groupedByActivity[atividadeId] = [];\n  }\n  groupedByActivity[atividadeId].push(inscricao);\n}\n\nconst results = [];\n\nfor (const atividade of atividades) {\n  const atividadeId = String(atividade.id);\n  const registrants = groupedByActivity[atividadeId] || [];\n\n  if (!config.includeEmptyActivities && registrants.length === 0) {\n    continue;\n  }\n\n  registrants.sort((a, b) => {\n    const nameA = (a.nome_completo || '').toLowerCase();\n    const nameB = (b.nome_completo || '').toLowerCase();\n    return nameA.localeCompare(nameB, 'pt-BR');\n  });\n\n  const capacidade = parseInt(atividade.capacidade) || 0;\n  const vagasDisponiveis = parseInt(atividade.vagas_disponiveis) || 0;\n\n  let html = '<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Lista de Presenca</title>';\n  html += '<style>';\n  html += '@media print { body { margin: 0; } @page { size: A4; margin: 1cm; } .no-print { display: none !important; } }';\n  html += 'body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; }';\n  html += '.print-bar { background: #c41e3a; padding: 15px; text-align: center; margin-bottom: 20px; }';\n  html += '.print-btn { background: white; color: #c41e3a; padding: 12px 30px; border: none; cursor: pointer; font-size: 16px; font-weight: bold; border-radius: 5px; }';\n  html += '.print-btn:hover { background: #f0f0f0; }';\n  html += 'h1 { color: #c41e3a; font-size: 18px; margin-bottom: 5px; text-align: center; }';\n  html += 'h2 { color: #333; font-size: 14px; margin-top: 0; text-align: center; }';\n  html += '.info { margin: 15px 0; padding: 10px; background: #f5f5f5; border-left: 4px solid #c41e3a; font-size: 11px; }';\n  html += '.stats { margin: 15px 0; text-align: center; font-size: 11px; }';\n  html += '.stats span { display: inline-block; margin: 0 15px; padding: 5px 12px; background: #eee; border-radius: 3px; }';\n  html += 'table { width: 100%; border-collapse: collapse; margin-top: 15px; }';\n  html += 'th { background-color: #c41e3a; color: white; padding: 8px 5px; text-align: left; font-size: 10px; }';\n  html += 'td { padding: 6px 5px; border: 1px solid #ddd; font-size: 10px; }';\n  html += 'tr:nth-child(even) { background-color: #f9f9f9; }';\n  html += '.checkbox { width: 60px; text-align: center; }';\n  html += '.footer { margin-top: 20px; text-align: center; font-size: 9px; color: #666; border-top: 1px solid #ddd; padding-top: 10px; }';\n  html += '</style></head><body>';\n\n  html += '<div class=\"print-bar no-print\">';\n  html += '<button class=\"print-btn\" onclick=\"window.print()\">IMPRIMIR LISTA DE PRESENCA</button>';\n  html += '</div>';\n\n  html += '<h1>DEZEMBRO VERMELHO 2025</h1>';\n  html += '<h2>Lista de Presenca - Controle de Participantes</h2>';\n\n  html += '<div class=\"info\">';\n  html += '<strong>ATIVIDADE:</strong> ' + atividade.nome_atividade + '<br>';\n  html += '<strong>DATA:</strong> ' + atividade.data + ' | <strong>HORARIO:</strong> ' + atividade.horario + '<br>';\n  html += '<strong>LOCAL:</strong> ' + atividade.local;\n  html += '</div>';\n\n  html += '<div class=\"stats\">';\n  html += '<span><strong>INSCRITOS:</strong> ' + registrants.length + '</span>';\n  html += '<span><strong>CAPACIDADE:</strong> ' + capacidade + '</span>';\n  html += '<span><strong>VAGAS:</strong> ' + vagasDisponiveis + '</span>';\n  html += '</div>';\n\n  html += '<table><thead><tr>';\n  html += '<th style=\"width:25px\">#</th>';\n  html += '<th style=\"width:80px\">TICKET</th>';\n  html += '<th>NOME</th>';\n  html += '<th>EMAIL</th>';\n  html += '<th style=\"width:85px\">INSCRICAO</th>';\n  html += '<th class=\"checkbox\">PRESENCA</th>';\n  html += '</tr></thead><tbody>';\n\n  if (registrants.length === 0) {\n    html += '<tr><td colspan=\"6\" style=\"text-align: center; padding: 25px; color: #666;\">Nenhum inscrito</td></tr>';\n  } else {\n    for (let i = 0; i < registrants.length; i++) {\n      const reg = registrants[i];\n      const nomeTitleCase = toTitleCase(reg.nome_completo);\n      html += '<tr>';\n      html += '<td>' + (i + 1) + '</td>';\n      html += '<td>' + (reg.ticket_id || '-') + '</td>';\n      html += '<td>' + nomeTitleCase + '</td>';\n      html += '<td style=\"font-size:9px\">' + (reg.email || '-').toLowerCase() + '</td>';\n      html += '<td>' + formatToBrasiliaShort(reg.timestamp) + '</td>';\n      html += '<td class=\"checkbox\"></td>';\n      html += '</tr>';\n    }\n  }\n\n  html += '</tbody></table>';\n  html += '<div class=\"footer\">Gerado em ' + dateTimeStr + ' | Dezembro Vermelho 2025</div>';\n  html += '</body></html>';\n\n  const safeActivityName = atividade.nome_atividade\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[^a-zA-Z0-9]/g, '_')\n    .substring(0, 35);\n  const filename = 'Lista_' + atividadeId.padStart(2, '0') + '_' + safeActivityName + '.html';\n\n  results.push({\n    json: {\n      atividade_id: atividadeId,\n      atividade_nome: atividade.nome_atividade,\n      atividade_data: atividade.data,\n      capacidade: capacidade,\n      vagas_disponiveis: vagasDisponiveis,\n      total_inscritos: registrants.length,\n      ocupacao: capacidade > 0 ? Math.round((registrants.length / capacidade) * 100) : 0,\n      filename: filename,\n      recipients: config.recipients,\n      reportDateTime: dateTimeStr\n    },\n    binary: {\n      data: await this.helpers.prepareBinaryData(\n        Buffer.from(html, 'utf-8'),\n        filename,\n        'text/html'\n      )\n    }\n  });\n}\n\nresults.sort((a, b) => parseInt(a.json.atividade_id) - parseInt(b.json.atividade_id));\n\nreturn results;"
+      },
+      "id": "8c5a9d19-6f41-4c86-aba0-565dc51c7165",
+      "name": "Gerar HTML por Atividade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "Lista_",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1TElWHGnKf5za9zHU1KytAWpjgZEqxkhc",
+            "mode": "list",
+            "cachedResultName": "lista_de_presenca",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1TElWHGnKf5za9zHU1KytAWpjgZEqxkhc"
+          }
+        },
+        "options": {}
+      },
+      "id": "28c9252d-bdcb-463a-976a-8d121234a9dd",
+      "name": "Listar Arquivos Antigos",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        48,
+        -48
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hxhhpxOoGhnwvHvU",
+          "name": "Google Drive n8n 7-5-2025"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "62f2dc1f-0ebe-4bc2-9d5d-730360589e83",
+      "name": "Deletar Arquivos Antigos",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        272,
+        -48
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hxhhpxOoGhnwvHvU",
+          "name": "Google Drive n8n 7-5-2025"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const htmlData = $('Gerar HTML por Atividade').all();\nreturn htmlData;"
+      },
+      "id": "d61b3228-0a5a-4432-adee-c347988b2ae4",
+      "name": "Aguardar Limpeza",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -48
+      ],
+      "notes": "Waits for cleanup to complete before uploading new files"
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.filename }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1TElWHGnKf5za9zHU1KytAWpjgZEqxkhc",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "88f5988a-9e33-47ea-91b8-e7012aba2a2c",
+      "name": "Upload HTML para Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        720,
+        -48
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "hxhhpxOoGhnwvHvU",
+          "name": "Google Drive n8n 7-5-2025"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst config = $('Configuracoes').first().json;\nconst htmlData = $('Gerar HTML por Atividade').all();\n\nconst now = new Date();\nconst brasiliaOffset = -3 * 60;\nconst utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);\nconst brasiliaTime = new Date(utcTime + (brasiliaOffset * 60000));\nconst day = String(brasiliaTime.getDate()).padStart(2, '0');\nconst month = String(brasiliaTime.getMonth() + 1).padStart(2, '0');\nconst year = brasiliaTime.getFullYear();\nconst hours = String(brasiliaTime.getHours()).padStart(2, '0');\nconst minutes = String(brasiliaTime.getMinutes()).padStart(2, '0');\nconst dateTimeStr = day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;\n\nlet summaryTable = '';\nlet totalInscritos = 0;\nlet totalCapacidade = 0;\n\nfor (let i = 0; i < items.length; i++) {\n  const driveFile = items[i].json;\n  const activityData = htmlData[i].json;\n\n  totalInscritos += activityData.total_inscritos;\n  totalCapacidade += activityData.capacidade;\n\n  const downloadLink = 'https://drive.google.com/uc?export=download&id=' + driveFile.id;\n  const statusColor = activityData.ocupacao >= 90 ? '#dc3545' : activityData.ocupacao >= 70 ? '#ffc107' : '#28a745';\n\n  summaryTable += '<tr>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px\">' + activityData.atividade_id + '</td>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px\"><a href=\"' + downloadLink + '\" style=\"color:#c41e3a;text-decoration:none;font-weight:bold\">' + activityData.atividade_nome + '</a></td>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px\">' + activityData.atividade_data + '</td>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px;text-align:center\">' + activityData.total_inscritos + '</td>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px;text-align:center\">' + activityData.capacidade + '</td>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px;text-align:center\">' + activityData.vagas_disponiveis + '</td>';\n  summaryTable += '<td style=\"padding:8px 5px;border-bottom:1px solid #ddd;font-size:11px;text-align:center\"><span style=\"background:' + statusColor + ';color:white;padding:2px 6px;border-radius:3px;font-size:10px\">' + activityData.ocupacao + '%</span></td>';\n  summaryTable += '</tr>';\n}\n\nconst adminTriggerLink = 'https://bacanapps.github.io/dezembro-vermelho-2025/admin-relatorio-trigger.html';\nconst refreshButton = '<div style=\"text-align:center;margin:25px 0;padding:20px;background:#f0f0f0;border-radius:8px;\"><p style=\"margin:0 0 15px 0;font-size:13px;color:#555;\">Precisa de um relatorio atualizado?</p><a href=\"' + adminTriggerLink + '\" target=\"_blank\" style=\"display:inline-block;background:#c41e3a;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;font-size:14px;\">GERAR NOVO RELATORIO</a></div>';\n\nreturn {\n  json: {\n    recipients: config.recipients,\n    reportDateTime: dateTimeStr,\n    totalAtividades: items.length,\n    totalInscritos: totalInscritos,\n    totalCapacidade: totalCapacidade,\n    summaryTable: summaryTable,\n    refreshButton: refreshButton\n  }\n};"
+      },
+      "id": "99270a34-cf31-4a73-a82d-e8976fdd9796",
+      "name": "Montar Email com Links",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipients }}",
+        "subject": "=Relatorio Diario - Dezembro Vermelho 2025 ({{ $json.totalInscritos }} inscritos em {{ $json.totalAtividades }} atividades)",
+        "message": "=<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333}.container{max-width:900px;margin:0 auto;padding:20px}.header{background-color:#c41e3a;color:white;padding:20px;text-align:center}.header h1{margin:0;font-size:22px}.header h2{margin:5px 0 0 0;font-size:14px;font-weight:normal}.content{background-color:#f9f9f9;padding:20px;margin-top:20px}.footer{margin-top:20px;text-align:center;font-size:12px;color:#666}a{color:#c41e3a}</style></head><body><div class=\"container\"><div class=\"header\"><h1>Dezembro Vermelho 2025</h1><h2>Relatorio Diario - 40 Anos da Resposta Brasileira a AIDS</h2></div><div class=\"content\"><table style=\"width:100%;border-collapse:collapse;margin:20px 0\"><tr><td style=\"text-align:center;padding:20px;border:1px solid #ddd;background:white\"><div style=\"font-size:42px;font-weight:bold;color:#c41e3a\">{{ $json.totalInscritos }}</div><div style=\"font-size:12px;color:#666;text-transform:uppercase\">Total de Inscritos</div></td><td style=\"text-align:center;padding:20px;border:1px solid #ddd;background:white\"><div style=\"font-size:42px;font-weight:bold;color:#333\">{{ $json.totalAtividades }}</div><div style=\"font-size:12px;color:#666;text-transform:uppercase\">Atividades</div></td><td style=\"text-align:center;padding:20px;border:1px solid #ddd;background:white\"><div style=\"font-size:42px;font-weight:bold;color:#28a745\">{{ $json.totalCapacidade }}</div><div style=\"font-size:12px;color:#666;text-transform:uppercase\">Capacidade Total</div></td></tr></table><h3 style=\"color:#c41e3a;border-bottom:2px solid #c41e3a;padding-bottom:10px;margin-top:30px\">Resumo por Atividade</h3><p style=\"margin-bottom:15px;padding:10px;background-color:#fff3cd;border-radius:5px;border-left:4px solid #ffc107;font-size:12px\"><strong>Clique no nome da atividade</strong> para baixar a Lista de Presenca. Abra o arquivo no navegador e clique no botao IMPRIMIR.</p><table style=\"width:100%;border-collapse:collapse;background:white\"><thead><tr><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:left;font-size:11px\">ID</th><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:left;font-size:11px\">Atividade</th><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:left;font-size:11px\">Data</th><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:center;font-size:11px\">Inscritos</th><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:center;font-size:11px\">Capacidade</th><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:center;font-size:11px\">Vagas</th><th style=\"background-color:#c41e3a;color:white;padding:10px 5px;text-align:center;font-size:11px\">Ocupacao</th></tr></thead><tbody>{{ $json.summaryTable }}</tbody></table><div style=\"text-align:center;margin:25px 0;padding:20px;background:#f0f0f0;border-radius:8px;\"><p style=\"margin:0 0 15px 0;font-size:13px;color:#555;\">Precisa de um relatorio atualizado?</p><a href=\"https://bacanapps.github.io/dezembro-vermelho-2025/admin-relatorio-trigger.html\" target=\"_blank\" style=\"display:inline-block;background:#c41e3a;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;font-size:14px;\">GERAR NOVO RELATORIO</a></div></div><div class=\"footer\">Relatorio gerado em {{ $json.reportDateTime }} | Sistema de Inscricoes Dezembro Vermelho 2025</div></div></body></html>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Dezembro Vermelho 2025"
+        }
+      },
+      "id": "d95705a2-345c-4cfa-a9c4-4ee397e97e7d",
+      "name": "Enviar Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1168,
+        -48
+      ],
+      "webhookId": "9b3e3025-12a8-4b87-8b29-549fda163128",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ahtaIJUwEISMY1n2",
+          "name": "exposicao40anosaids@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "relatorio-dv-2025",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "12b2a2b0-f91c-401d-a086-13ba76cfed1a",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        352
+      ],
+      "webhookId": "relatorio-dv-2025"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=Relatorio gerado com sucesso! Email enviado com {{ $('Montar Email com Links').first().json.totalInscritos }} inscritos em {{ $('Montar Email com Links').first().json.totalAtividades }} atividades.",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "webhook-response-node-001",
+      "name": "Responder Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        -48
+      ]
+    }
+  ],
+  "connections": {
+    "Agendamento Diario": {
+      "main": [
+        [
+          {
+            "node": "Configuracoes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Configuracoes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracoes": {
+      "main": [
+        [
+          {
+            "node": "Buscar Inscricoes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Buscar Atividades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Inscricoes": {
+      "main": [
+        [
+          {
+            "node": "Marcar Inscricoes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Atividades": {
+      "main": [
+        [
+          {
+            "node": "Marcar Atividades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Inscricoes": {
+      "main": [
+        [
+          {
+            "node": "Combinar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Atividades": {
+      "main": [
+        [
+          {
+            "node": "Combinar Dados",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combinar Dados": {
+      "main": [
+        [
+          {
+            "node": "Gerar HTML por Atividade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar HTML por Atividade": {
+      "main": [
+        [
+          {
+            "node": "Listar Arquivos Antigos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar Arquivos Antigos": {
+      "main": [
+        [
+          {
+            "node": "Deletar Arquivos Antigos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deletar Arquivos Antigos": {
+      "main": [
+        [
+          {
+            "node": "Aguardar Limpeza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar Limpeza": {
+      "main": [
+        [
+          {
+            "node": "Upload HTML para Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload HTML para Drive": {
+      "main": [
+        [
+          {
+            "node": "Montar Email com Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar Email com Links": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Email": {
+      "main": [
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Configuracoes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-12-01T15:00:00.000Z",
+  "versionId": "v20-webhook-response-fixed"
+}

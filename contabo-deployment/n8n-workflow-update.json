@@ -1,0 +1,76 @@
+{
+  "meta": {
+    "description": "Updated 'Enviar Email' node for Dezembro Vermelho workflow",
+    "instructions": "Replace the Gmail node with this HTTP Request node"
+  },
+  "node": {
+    "parameters": {
+      "method": "POST",
+      "url": "https://smtp-relay.bebot.co/send-email",
+      "authentication": "predefinedCredentialType",
+      "nodeCredentialType": "httpHeaderAuth",
+      "sendHeaders": true,
+      "headerParameters": {
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "value": "YOUR_API_KEY_HERE"
+          },
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "sendBody": true,
+      "contentType": "application/json",
+      "bodyParameters": {
+        "parameters": [
+          {
+            "name": "from",
+            "value": "Dezembro Vermelho 2025 <producao@aids.gov.br>"
+          },
+          {
+            "name": "to",
+            "value": "={{$node['Gerar Ticket'].json.email}}"
+          },
+          {
+            "name": "subject",
+            "value": "Confirmacao de Inscricao - Dezembro Vermelho 2025"
+          },
+          {
+            "name": "html",
+            "value": "=<!DOCTYPE html>\\n<html>\\n<head>\\n  <style>\\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\\n    .header { background-color: #c41e3a; color: white; padding: 20px; text-align: center; }\\n    .content { background-color: #f9f9f9; padding: 20px; margin-top: 20px; }\\n    .ticket { background-color: white; border: 2px solid #c41e3a; padding: 20px; margin: 20px 0; }\\n    .qr-code { text-align: center; margin: 20px 0; }\\n    .info { margin: 10px 0; }\\n  </style>\\n</head>\\n<body>\\n  <div class=\\\"container\\\">\\n    <div class=\\\"header\\\">\\n      <h1>Dezembro Vermelho 2025</h1>\\n      <h2>Inscricao Confirmada!</h2>\\n    </div>\\n    <div class=\\\"content\\\">\\n      <p>Ola <strong>{{$node['Gerar Ticket'].json.nome_completo}}</strong>,</p>\\n      <p>Sua inscricao foi confirmada com sucesso!</p>\\n      <div class=\\\"ticket\\\">\\n        <h3>Detalhes da Atividade:</h3>\\n        <div class=\\\"info\\\"><strong>Atividade:</strong> {{$node['Gerar Ticket'].json.atividade_nome}}</div>\\n        <div class=\\\"info\\\"><strong>Data:</strong> {{$node['Gerar Ticket'].json.atividade_data}}</div>\\n        <div class=\\\"info\\\"><strong>Horario:</strong> {{$node['Gerar Ticket'].json.atividade_horario}}</div>\\n        <div class=\\\"info\\\"><strong>Local:</strong> {{$node['Gerar Ticket'].json.atividade_local}}</div>\\n        <div class=\\\"info\\\"><strong>Codigo do Ingresso:</strong> <span style=\\\"font-size: 18px; color: #c41e3a;\\\">{{$node['Gerar Ticket'].json.ticket_id}}</span></div>\\n      </div>\\n      <div class=\\\"qr-code\\\">\\n        <p><strong>Apresente este QR Code na entrada:</strong></p>\\n        <img src=\\\"https://api.qrserver.com/v1/create-qr-code/?data={{encodeURIComponent($node['Gerar Ticket'].json.qr_payload)}}&size=300x300\\\" alt=\\\"QR Code\\\" />\\n      </div>\\n    </div>\\n  </div>\\n</body>\\n</html>"
+          }
+        ]
+      },
+      "options": {
+        "timeout": 30000
+      }
+    },
+    "id": "fd8508c4-6a1c-4538-9548-2079c6acdd9c",
+    "name": "Enviar Email",
+    "type": "n8n-nodes-base.httpRequest",
+    "typeVersion": 4.1,
+    "position": [288, 208]
+  },
+  "instructions_detailed": [
+    "1. Open your Dezembro Vermelho workflow in n8n.bebot.co",
+    "2. Delete the existing 'Enviar Email' Gmail node",
+    "3. Add a new 'HTTP Request' node in its place",
+    "4. Configure the node with these settings:",
+    "   - Method: POST",
+    "   - URL: https://smtp-relay.bebot.co/send-email",
+    "   - Authentication: None (using header)",
+    "   - Add Header: X-API-Key = [YOUR_API_KEY from installation]",
+    "   - Add Header: Content-Type = application/json",
+    "   - Body Content Type: JSON",
+    "   - Body Parameters:",
+    "     * from: Dezembro Vermelho 2025 <producao@aids.gov.br>",
+    "     * to: ={{$node['Gerar Ticket'].json.email}}",
+    "     * subject: Confirmacao de Inscricao - Dezembro Vermelho 2025",
+    "     * html: [Copy the HTML from the old node]",
+    "5. Save and test the workflow",
+    "6. Monitor logs: sudo journalctl -u smtp-relay -f"
+  ]
+}

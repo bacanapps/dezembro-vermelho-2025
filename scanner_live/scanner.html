@@ -21,7 +21,6 @@
     }
     .logout-btn:hover { background: #800000; }
 
-    /* Modal for duplicate check-in alert */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -53,41 +52,12 @@
       margin-bottom: 20px;
       color: #d49b00;
     }
-    .modal-header h2 {
-      margin: 0;
-      font-size: 22px;
-    }
     .modal-body {
       background: #fffbe6;
       border: 2px solid #d49b00;
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 20px;
-    }
-    .modal-body p {
-      margin: 8px 0;
-      font-size: 16px;
-      line-height: 1.5;
-    }
-    .modal-body strong {
-      color: #333;
-    }
-    .modal-footer {
-      text-align: center;
-    }
-    .modal-close-btn {
-      background: #d49b00;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 32px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .modal-close-btn:hover {
-      background: #b88400;
     }
   </style>
 </head>
@@ -116,32 +86,28 @@
     </div>
   </div>
 
-  <!-- Modal for duplicate check-in alert -->
+  <!-- Duplicate Modal -->
   <div id="duplicateModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
         <span style="font-size: 32px;">⚠️</span>
         <h2>Check-in Já Realizado</h2>
       </div>
-      <div class="modal-body" id="modalBody">
-        <!-- Dynamic content will be inserted here -->
-      </div>
+      <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer">
         <button id="modalCloseBtn" class="modal-close-btn">Fechar</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal for successful check-in -->
+  <!-- Success Modal -->
   <div id="successModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header" style="color: green;">
         <span style="font-size: 32px;">✅</span>
         <h2>Check-in Confirmado!</h2>
       </div>
-      <div class="modal-body" id="successModalBody" style="background: #e8f5e9; border-color: green;">
-        <!-- Dynamic content will be inserted here -->
-      </div>
+      <div class="modal-body" id="successModalBody" style="background: #e8f5e9;"></div>
       <div class="modal-footer">
         <button id="successModalCloseBtn" class="modal-close-btn" style="background: green;">Fechar</button>
       </div>
@@ -149,6 +115,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -159,224 +126,47 @@
       const logoutBtn = document.getElementById("logoutBtn");
       const webhookUrl = "https://n8n.bebot.co/webhook/checkin-dv-2025";
 
-      // 🔊 Preload sounds to allow playback on iOS/Android
-      const beepSuccess = new Audio("assets/success.mp3");
-      const beepError = new Audio("assets/error.mp3");
-
-      // Set properties to help with mobile autoplay
-      beepSuccess.preload = "auto";
-      beepError.preload = "auto";
-      beepSuccess.volume = 1.0;
-      beepError.volume = 1.0;
-
-      // Load sounds
-      [beepSuccess, beepError].forEach(audio => audio.load());
-
-      // Enable audio on first user interaction (required for mobile)
-      let audioUnlocked = false;
-      const unlockAudio = () => {
-        if (!audioUnlocked) {
-          beepSuccess.play().then(() => beepSuccess.pause()).catch(() => {});
-          beepError.play().then(() => beepError.pause()).catch(() => {});
-          audioUnlocked = true;
-          console.log("Audio unlocked");
-          document.removeEventListener("click", unlockAudio);
-          document.removeEventListener("touchstart", unlockAudio);
-        }
-      };
-      document.addEventListener("click", unlockAudio);
-      document.addEventListener("touchstart", unlockAudio);
-
-      // Modal elements
-      const duplicateModal = document.getElementById("duplicateModal");
-      const modalBody = document.getElementById("modalBody");
-      const modalCloseBtn = document.getElementById("modalCloseBtn");
-
-      const successModal = document.getElementById("successModal");
-      const successModalBody = document.getElementById("successModalBody");
-      const successModalCloseBtn = document.getElementById("successModalCloseBtn");
-
-      // Display logged-in staff name
       userInfo.textContent = staffName
         ? `Olá, ${staffName}!`
         : "Usuário não identificado.";
 
-      // Logout handler
-      logoutBtn.addEventListener("click", () => {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "login.html";
-      });
-
-      // Duplicate modal close handler
-      modalCloseBtn.addEventListener("click", () => {
-        duplicateModal.classList.remove("active");
-        setTimeout(() => restartCamera(), 500);
-      });
-
-      // Close duplicate modal on overlay click
-      duplicateModal.addEventListener("click", (e) => {
-        if (e.target === duplicateModal) {
-          duplicateModal.classList.remove("active");
-          setTimeout(() => restartCamera(), 500);
-        }
-      });
-
-      // Success modal close handler
-      successModalCloseBtn.addEventListener("click", () => {
-        successModal.classList.remove("active");
-        setTimeout(() => restartCamera(), 500);
-      });
-
-      // Close success modal on overlay click
-      successModal.addEventListener("click", (e) => {
-        if (e.target === successModal) {
-          successModal.classList.remove("active");
-          setTimeout(() => restartCamera(), 500);
-        }
-      });
-
-      // Function to show duplicate check-in modal
-      const showDuplicateModal = (data) => {
-        const html = `
-          <p><strong>Participante:</strong> ${data.nome_completo || 'N/A'}</p>
-          <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
-          <p><strong>Atividade:</strong> ${data.atividade_nome || 'N/A'}</p>
-          <p><strong>Ticket ID:</strong> ${data.ticket_id || 'N/A'}</p>
-          <p><strong>Check-in realizado em:</strong> ${data.checkin_timestamp || 'N/A'}</p>
-          <p><strong>Verificado por:</strong> ${data.checked_by || 'N/A'}</p>
-        `;
-        modalBody.innerHTML = html;
-        duplicateModal.classList.add("active");
-        beepError.play().catch(()=>{});
-      };
-
-      // Function to show success check-in modal
-      const showSuccessModal = (data) => {
-        const html = `
-          <p><strong>Participante:</strong> ${data.nome_completo || 'N/A'}</p>
-          <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
-          <p><strong>Atividade:</strong> ${data.atividade_nome || 'N/A'}</p>
-          <p><strong>Ticket ID:</strong> ${data.ticket_id || 'N/A'}</p>
-          <p><strong>Status:</strong> ${data.status || 'CONFIRMADA'}</p>
-          <p><strong>Check-in realizado em:</strong> ${data.checkin_timestamp || new Date().toLocaleString('pt-BR')}</p>
-          <p><strong>Verificado por:</strong> ${data.checked_by || staffName || 'Admin'}</p>
-        `;
-        successModalBody.innerHTML = html;
-        successModal.classList.add("active");
-        beepSuccess.play().catch((e) => console.log("Sound error:", e));
-      };
-
-      // Function to send the check-in request
-      const sendCheckin = async (ticketId) => {
+      // -------------------------------
+      // STRICT REAR CAMERA IMPLEMENTATION
+      // -------------------------------
+      async function forceRearCameraId() {
+        // Try EXACT environment
         try {
-          statusEl.textContent = "Verificando ingresso...";
-          statusEl.style.color = "#000";
-          const resp = await fetch(
-            `${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}&staffName=${encodeURIComponent(staffName)}`
-          );
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { exact: "environment" } },
+            audio: false
+          });
+          const track = stream.getVideoTracks()[0];
+          const id = track.getSettings().deviceId;
+          stream.getTracks().forEach(t => t.stop());
+          if (id) return id;
+        } catch (e) {}
 
-          // Check if response is JSON or HTML
-          const contentType = resp.headers.get("content-type");
-          let result;
+        // Try soft environment
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+          });
+          const track = stream.getVideoTracks()[0];
+          const id = track.getSettings().deviceId;
+          stream.getTracks().forEach(t => t.stop());
+          if (id) return id;
+        } catch (e) {}
 
-          if (contentType && contentType.includes("application/json")) {
-            result = await resp.json();
-            console.log("Resposta JSON:", result);
-          } else {
-            // HTML response means old workflow is active
-            const html = await resp.text();
-            console.warn("Resposta HTML (workflow antigo ativo):", html);
-            statusEl.textContent = "⚠️ Workflow antigo ativo. Por favor, ative v2.2 no N8N.";
-            statusEl.style.color = "orange";
-            beepError.play().catch(()=>{});
-            return;
-          }
-
-          // Log full response for debugging
-          console.log("Full response object:", JSON.stringify(result, null, 2));
-          console.log("Response type:", typeof result);
-          console.log("Is array?", Array.isArray(result));
-
-          // Handle if response is wrapped in array (N8N sometimes does this)
-          let data = result;
-          if (Array.isArray(result) && result.length > 0) {
-            console.log("Response is array, extracting first item");
-            data = result[0];
-          }
-
-          // Handle if response is wrapped in 'json' property
-          if (data && data.json && typeof data.json === 'object') {
-            console.log("Response has json wrapper, unwrapping");
-            data = data.json;
-          }
-
-          console.log("Final data object:", JSON.stringify(data, null, 2));
-
-          // Check for actual data FIRST (duplicate or success)
-          if (data.alreadyChecked === true) {
-            statusEl.textContent = "⚠️ Participante já realizou check-in";
-            statusEl.style.color = "#d49b00";
-            showDuplicateModal(data);
-          } else if (data.success === true || data.checked_in === true) {
-            statusEl.textContent = "✅ Check-in registrado com sucesso!";
-            statusEl.style.color = "green";
-            showSuccessModal(data);
-          } else if (data.error === true) {
-            statusEl.textContent = data.message || "❌ Erro ao processar check-in.";
-            statusEl.style.color = "red";
-            beepError.play().catch((e) => console.log("Sound error:", e));
-            setTimeout(() => restartCamera(), 2000);
-          } else if (data.unauthorized === true) {
-            statusEl.textContent = data.message || "🚫 Acesso não autorizado";
-            statusEl.style.color = "red";
-            beepError.play().catch((e) => console.log("Sound error:", e));
-            setTimeout(() => restartCamera(), 2000);
-          } else if (data.notFound === true) {
-            statusEl.textContent = data.message || "⚠️ Ingresso não encontrado";
-            statusEl.style.color = "orange";
-            beepError.play().catch((e) => console.log("Sound error:", e));
-            setTimeout(() => restartCamera(), 2000);
-          } else if (data.message === "Workflow was started" && !data.ticket_id) {
-            // Only show old workflow warning if no actual data present
-            statusEl.textContent = "⚠️ Workflow antigo ativo! Ative v2.3 no N8N.";
-            statusEl.style.color = "orange";
-            beepError.play().catch((e) => console.log("Sound error:", e));
-            console.error("❌ OLD WORKFLOW ACTIVE - Deploy v2.3!");
-            console.error("Response:", data);
-            setTimeout(() => restartCamera(), 3000);
-          } else {
-            // Unknown response format - log everything
-            console.error("Formato de resposta desconhecido:", data);
-            console.error("Keys in response:", Object.keys(data || {}));
-            console.error("Values:", Object.values(data || {}));
-            statusEl.textContent = "❌ Resposta inesperada do servidor. Ver console (F12)";
-            statusEl.style.color = "red";
-            beepError.play().catch((e) => console.log("Sound error:", e));
-            setTimeout(() => restartCamera(), 3000);
-          }
-        } catch (err) {
-          console.error("Erro:", err);
-          statusEl.textContent = "Erro de conexão com o servidor.";
-          statusEl.style.color = "red";
-          beepError.play().catch((e) => console.log("Sound error:", e));
+        // Enumerate devices (iOS labels empty → rear is last)
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videos = devices.filter(d => d.kind === "videoinput");
+          if (videos.length === 0) return null;
+          return videos[videos.length - 1].deviceId;
+        } catch (e) {
+          return null;
         }
-      };
-
-      // Manual entry fallback
-      document.getElementById("manualSubmit").addEventListener("click", async () => {
-        const ticket = document.getElementById("manualTicket").value.trim();
-        if (!ticket) {
-          alert("Digite um código de ingresso válido (ex: DV25-XXXXXXX)");
-          return;
-        }
-        await sendCheckin(ticket);
-      });
-
-      // Initialize camera
-      if (typeof Html5Qrcode === "undefined") {
-        statusEl.textContent = "Erro: biblioteca html5-qrcode não encontrada.";
-        return;
       }
 
       const html5QrCode = new Html5Qrcode("reader");
@@ -385,46 +175,124 @@
       let isScanning = false;
 
       const onScanSuccess = async (decodedText) => {
-        if (isScanning) return; // Prevent multiple scans
+        if (isScanning) return;
         isScanning = true;
-
-        console.log("QR detectado:", decodedText);
-        html5QrCode.stop().catch(() => {});
+        await html5QrCode.stop().catch(()=>{});
         statusEl.textContent = "QR Code detectado. Validando...";
-        await sendCheckin(decodedText.split("id=")[1] || decodedText.trim());
+        const cleanId = decodedText.split("id=")[1] || decodedText.trim();
+        await sendCheckin(cleanId);
       };
 
-      // Function to restart camera
-      const restartCamera = async () => {
-        try {
-          isScanning = false;
-          if (cameraId) {
-            await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
-            console.log("Camera restarted");
-          }
-        } catch (err) {
-          console.error("Erro ao reiniciar câmera:", err);
-        }
-      };
-
+      // --------------------
+      // START STRICT REAR CAMERA
+      // --------------------
       try {
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length) {
-          const backCamera = devices.find((d) =>
-            d.label.toLowerCase().includes("back") ||
-            d.label.toLowerCase().includes("rear") ||
-            d.label.toLowerCase().includes("environment")
-          );
-          cameraId = backCamera ? backCamera.id : devices[0].id;
-          await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
-          statusEl.textContent = "Câmera ativa. Aponte para o QR Code do ingresso.";
-        } else {
-          statusEl.textContent = "Nenhuma câmera encontrada. Use o campo manual.";
+        statusEl.textContent = "Selecionando câmera traseira...";
+        const forcedId = await forceRearCameraId();
+
+        if (!forcedId) {
+          statusEl.textContent = "❌ A câmera traseira não pôde ser acessada.";
+          return;
         }
+
+        cameraId = forcedId;
+        await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
+        statusEl.textContent = "Câmera traseira ativa. Aponte para o QR Code.";
+
       } catch (err) {
-        console.error("Falha ao acessar câmera:", err);
-        statusEl.textContent = "Falha ao acessar a câmera. Use o campo manual.";
+        console.error("Erro ao iniciar câmera traseira:", err);
+        statusEl.textContent = "❌ Falha ao iniciar a câmera traseira.";
       }
+
+      async function restartCamera() {
+        isScanning = false;
+        if (!cameraId) return;
+        try {
+          await html5QrCode.start(cameraId, qrConfig, onScanSuccess);
+        } catch (e) {}
+      }
+
+      async function sendCheckin(ticketId) {
+        try {
+          statusEl.textContent = "Verificando ingresso...";
+          const resp = await fetch(
+            `${webhookUrl}?id=${encodeURIComponent(ticketId)}&auth=${encodeURIComponent(auth)}&staffName=${encodeURIComponent(staffName)}`
+          );
+          let result;
+          const type = resp.headers.get("content-type");
+
+          if (type.includes("application/json")) {
+            result = await resp.json();
+          } else {
+            statusEl.textContent = "⚠️ Workflow antigo ativo";
+            return;
+          }
+
+          let data = result?.json || result;
+
+          if (data.alreadyChecked) {
+            showDuplicateModal(data);
+            statusEl.textContent = "⚠️ Check-in já realizado.";
+            return;
+          }
+
+          if (data.success || data.checked_in) {
+            showSuccessModal(data);
+            statusEl.textContent = "✅ Check-in confirmado.";
+            return;
+          }
+
+          statusEl.textContent = "❌ Erro ao validar ingresso.";
+          setTimeout(() => restartCamera(), 2000);
+
+        } catch (err) {
+          statusEl.textContent = "❌ Erro de conexão.";
+        }
+      }
+
+      // MANUAL ENTRY
+      document.getElementById("manualSubmit")
+        .addEventListener("click", async () => {
+          const t = document.getElementById("manualTicket").value.trim();
+          if (!t) return alert("Digite um código válido.");
+          await sendCheckin(t);
+        });
+
+      // LOGOUT
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "login.html";
+      });
+
+      // --------------------
+      // MODAL FUNCTIONS
+      // --------------------
+      function showDuplicateModal(data) {
+        document.getElementById("modalBody").innerHTML = `
+          <p><strong>Participante:</strong> ${data.nome_completo}</p>
+          <p><strong>Atividade:</strong> ${data.atividade_nome}</p>
+          <p><strong>Ticket:</strong> ${data.ticket_id}</p>
+        `;
+        document.getElementById("duplicateModal").classList.add("active");
+      }
+      document.getElementById("modalCloseBtn").onclick = () => {
+        document.getElementById("duplicateModal").classList.remove("active");
+        restartCamera();
+      };
+
+      function showSuccessModal(data) {
+        document.getElementById("successModalBody").innerHTML = `
+          <p><strong>Participante:</strong> ${data.nome_completo}</p>
+          <p><strong>Atividade:</strong> ${data.atividade_nome}</p>
+          <p><strong>Ticket:</strong> ${data.ticket_id}</p>
+        `;
+        document.getElementById("successModal").classList.add("active");
+      }
+      document.getElementById("successModalCloseBtn").onclick = () => {
+        document.getElementById("successModal").classList.remove("active");
+        restartCamera();
+      };
     });
   </script>
 </body>
